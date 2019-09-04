@@ -21,7 +21,7 @@ var (
 
 // SetExpires set value
 func SetExpires(expires time.Duration) {
-	jwtExpires = time.Hour * 24 * 90 // 3 months
+	jwtExpires = expires
 }
 
 // SetSecret set value
