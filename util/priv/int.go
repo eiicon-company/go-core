@@ -3,7 +3,7 @@ package priv
 import (
 	"strconv"
 
-	"github.com/eiicon-company/go-utils/util/logger"
+	"github.com/eiicon-company/go-core/util/logger"
 )
 
 // MustInt64 returns numeric value as int64

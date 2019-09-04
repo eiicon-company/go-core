@@ -17,9 +17,9 @@ import (
 	"github.com/mediocregopher/radix.v2/redis"
 	"github.com/olivere/elastic"
 
-	"github.com/eiicon-company/go-utils/util/dlm"
-	"github.com/eiicon-company/go-utils/util/dsn"
-	"github.com/eiicon-company/go-utils/util/logger"
+	"github.com/eiicon-company/go-core/util/dlm"
+	"github.com/eiicon-company/go-core/util/dsn"
+	"github.com/eiicon-company/go-core/util/logger"
 )
 
 // DBConn returns current database established connection

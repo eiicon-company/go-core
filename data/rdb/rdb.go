@@ -8,7 +8,7 @@ import (
 	"github.com/mediocregopher/radix.v2/redis"
 	"github.com/pkg/errors"
 
-	"github.com/eiicon-company/go-utils/util"
+	"github.com/eiicon-company/go-core/util"
 )
 
 type (
@@ -203,4 +203,13 @@ func (rc *rdb) Del(key string) (int64, error) {
 	}
 
 	return resp.Int64()
+}
+
+func newRDB(env util.Environment, pool *pool.Pool) RDB {
+	r := &rdb{
+		Env:  env,
+		Pool: pool,
+	}
+
+	return r
 }

@@ -1,19 +1,32 @@
-# Go-Utils
+# go-core
 
 
 >
 > A go@1.12.9
 >
 
+This system force required to: You **have to must** have `GO111MODULE` environment variable that activates `go mod` module.
+
+Therefore, it set into.
+
+```php
+$ export GO111MODULE=on
+```
+
+or use direnv.
+
+```php
+$ brew install direnv
+```
 
 ## Installation
 
 Download Project
 
 ```php
-$ go get -u github.com:eiicon-company/go-utils
-$ go get -u github.com:eiicon-company/go-utils/v1
-$ go get -u github.com:eiicon-company/go-utils@rom5kdxv4kfq0uhfq1hfq4
+$ go get -u github.com:eiicon-company/go-core
+$ go get -u github.com:eiicon-company/go-core/v1
+$ go get -u github.com:eiicon-company/go-core@rom5kdxv4kfq0uhfq1hfq4
 ```
 
 ## Usage
@@ -34,4 +47,5 @@ $ make gomodule
 
 - storage: s3, filesystam, gcs, etc..
 - rdb: redis
+
 

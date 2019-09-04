@@ -11,7 +11,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
 
-	"github.com/eiicon-company/go-utils/util/repo"
+	"github.com/eiicon-company/go-core/util/repo"
 )
 
 type (

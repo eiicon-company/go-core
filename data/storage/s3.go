@@ -18,9 +18,9 @@ import (
 	"github.com/gobwas/glob"
 	"github.com/pkg/errors"
 
-	"github.com/eiicon-company/go-utils/util"
-	"github.com/eiicon-company/go-utils/util/dsn"
-	"github.com/eiicon-company/go-utils/util/logger"
+	"github.com/eiicon-company/go-core/util"
+	"github.com/eiicon-company/go-core/util/dsn"
+	"github.com/eiicon-company/go-core/util/logger"
 )
 
 // s3Storage provides implementation s3 resource interface.

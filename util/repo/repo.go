@@ -3,7 +3,7 @@ package repo
 import (
 	"errors"
 
-	"github.com/eiicon-company/go-utils/util/priv"
+	"github.com/eiicon-company/go-core/util/priv"
 	"github.com/volatiletech/sqlboiler/queries/qm"
 )
 

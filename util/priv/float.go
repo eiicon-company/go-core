@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/eiicon-company/go-utils/util/logger"
+	"github.com/eiicon-company/go-core/util/logger"
 )
 
 // MustFloat returns
