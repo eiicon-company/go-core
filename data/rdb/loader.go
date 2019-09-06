@@ -15,7 +15,7 @@ func Inject(di *dig.Container) {
 
 	for _, dep := range deps {
 		if err := di.Provide(dep); err != nil {
-			logger.Panicf("failed to process injection: %s", err)
+			logger.Panicf("failed to process go-core rdb injection: %s", err)
 		}
 	}
 }

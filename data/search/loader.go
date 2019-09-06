@@ -1,4 +1,4 @@
-package storage
+package search
 
 import (
 	"go.uber.org/dig"
@@ -10,12 +10,12 @@ import (
 func Inject(di *dig.Container) {
 	// Injects
 	var deps = []interface{}{
-		newStorage,
+		newCommand,
 	}
 
 	for _, dep := range deps {
 		if err := di.Provide(dep); err != nil {
-			logger.Panicf("failed to process go-core storage injection: %s", err)
+			logger.Panicf("failed to process go core search injection: %s", err)
 		}
 	}
 }
