@@ -11,7 +11,7 @@ type MailDSN struct {
 	// Auth
 	User, Password, Host string
 	// Server
-	Addr string
+	Addr, TLSServer string
 	// Option
 	TLS, StdOut bool
 }
@@ -48,11 +48,12 @@ func Mail(uri string) (*MailDSN, error) {
 	}
 
 	dsn := &MailDSN{
-		User:     m.User,
-		Password: m.Passwd,
-		Host:     m.Net,
-		Addr:     m.Addr,
-		TLS:      m.TLSConfig == "true",
+		User:      m.User,
+		Password:  m.Passwd,
+		Host:      m.Net,
+		Addr:      m.Addr,
+		TLS:       m.TLSConfig == "true",
+		TLSServer: hp[0],
 	}
 
 	return dsn, nil
