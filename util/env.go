@@ -9,6 +9,8 @@ type (
 	Environment interface {
 		// IsProd returns determined product environment mode
 		IsProd() bool
+		// IsDev returns determined develop environment mode
+		IsDev() bool
 		// IsDebug returns
 		IsDebug() bool
 		// IsSentry returns

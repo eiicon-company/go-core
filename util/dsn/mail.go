@@ -6,7 +6,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
-// MailDSN stdout:// or smtp://username@gmail.com:password@smtp.gmail.com(smtp.gmail.com:587)?tls=false
+// MailDSN stdout:// or smtp://username@gmail.com:password@smtp.gmail.com(smtp.gmail.com:587)/?tls=false
 type MailDSN struct {
 	// Auth
 	User, Password, Host string
@@ -16,7 +16,7 @@ type MailDSN struct {
 	TLS, StdOut bool
 }
 
-// Mail stdout:// or smtp://username@gmail.com:password@smtp.gmail.com(smtp.gmail.com:587)?tls=false
+// Mail stdout:// or smtp://username@gmail.com:password@smtp.gmail.com(smtp.gmail.com:587)/?tls=false
 func Mail(uri string) (*MailDSN, error) {
 	if strings.HasPrefix(uri, "stdout://") {
 		return &MailDSN{StdOut: true}, nil
