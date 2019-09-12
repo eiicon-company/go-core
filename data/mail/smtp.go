@@ -12,37 +12,34 @@ import (
 type (
 	smtpMail struct {
 		dsn *dsn.MailDSN
-
-		To      []string
-		Bcc     []string
-		Cc      []string
-		From    string
-		Subject string
-		Text    []byte
-		HTML    []byte
 	}
 )
 
-func (m *smtpMail) Send() error {
+func (m *smtpMail) Send(data *Data) error {
 	e := email.NewEmail()
-	e.To = m.To
-	e.Bcc = m.Bcc
-	e.Cc = m.Cc
-	e.From = m.From
-	e.Subject = m.Subject
-	if m.Text != nil {
-		e.Text = m.Text
+	e.To = data.To
+	e.Bcc = data.Bcc
+	e.Cc = data.Cc
+	e.From = data.From
+	e.Subject = data.Subject
+	if data.Text != nil {
+		e.Text = data.Text
 	}
-	if m.HTML != nil {
-		e.HTML = m.HTML
+	if data.HTML != nil {
+		e.HTML = data.HTML
 	}
 
-	auth := smtp.PlainAuth("", m.dsn.User, m.dsn.Password, m.dsn.Host)
+	auth := smtp.PlainAuth("",
+		m.dsn.User, m.dsn.Password, m.dsn.Host,
+	)
 
 	if !m.dsn.TLS {
 		return e.Send(m.dsn.Addr, auth)
 	}
 
-	cfg := &tls.Config{InsecureSkipVerify: true, ServerName: m.dsn.TLSServer}
+	cfg := &tls.Config{
+		InsecureSkipVerify: true,
+		ServerName:         m.dsn.TLSServer,
+	}
 	return e.SendWithTLS(m.dsn.Addr, auth, cfg)
 }

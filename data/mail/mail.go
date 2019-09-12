@@ -7,9 +7,20 @@ import (
 )
 
 type (
+	// Data sends data
+	Data struct {
+		To      []string
+		Bcc     []string
+		Cc      []string
+		From    string
+		Subject string
+		Text    []byte
+		HTML    []byte
+	}
+
 	// Mail provides interface for sends some of kinda E-Mail.
 	Mail interface {
-		Send() error
+		Send(*Data) error
 		// TODO: SendWithAttachment
 	}
 )
