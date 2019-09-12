@@ -14,7 +14,7 @@ import (
 )
 
 type (
-	// S3DSN ...
+	// S3DSN s3://data_bucket/path/data.flac
 	S3DSN struct {
 		Sess   *session.Session
 		Bucket string

@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// RedisDSN ...
+// RedisDSN redis://127.0.0.1:6379/8
 type RedisDSN struct {
 	Password, Host, Port, HostPort, DB string
 }
