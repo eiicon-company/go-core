@@ -9,7 +9,7 @@ import (
 )
 
 type (
-	// FileDSN ...
+	// FileDSN file://./storage/data.flac
 	FileDSN struct {
 		Folder string
 	}

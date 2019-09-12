@@ -10,6 +10,7 @@ require (
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/getsentry/raven-go v0.2.0
 	github.com/go-redsync/redsync v1.3.0
+	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
