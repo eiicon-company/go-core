@@ -19,6 +19,7 @@ require (
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e // indirect
 	github.com/mediocregopher/radix.v2 v0.0.0-20181115013041-b67df6e626f9
+	github.com/mediocregopher/radix/v3 v3.4.0
 	github.com/oleiade/reflections v1.0.0 // indirect
 	github.com/olivere/elastic v6.2.22+incompatible
 	github.com/pkg/errors v0.8.1
