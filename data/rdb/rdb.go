@@ -1,3 +1,4 @@
+// Package rdb is duplicated. use RDBV3Conn instead.
 package rdb
 
 import (

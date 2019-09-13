@@ -83,6 +83,7 @@ func ESConn(env Environment) (*elastic.Client, error) {
 }
 
 // RDBConn returns established connection
+// This is duplicated. use RDBV3Conn instead.
 func RDBConn(env Environment) (*pool.Pool, error) {
 	df := func(args ...interface{}) pool.DialFunc {
 		return func(network, addr string) (*redis.Client, error) {
