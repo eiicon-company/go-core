@@ -34,8 +34,8 @@ func newStorage(env util.Environment) Storage {
 			logger.Panicf(msg, env.EnvString("FURI"), err)
 		}
 
-		msg := "[INFO] a storage folder is chosen filesystems by <%s>"
-		logger.Printf(msg, env.EnvString("FURI"))
+		msg := "[INFO] a storage folder is chosen filesystems to <%s>"
+		logger.Printf(msg, file.Folder)
 
 		return &fileStorage{dsn: file}
 

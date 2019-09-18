@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	dlmrdb "github.com/gomodule/redigo/redis"
 	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/mediocregopher/radix.v2/redis"
+	"github.com/mediocregopher/radix/v3"
 	"github.com/olivere/elastic"
 
 	"github.com/eiicon-company/go-core/util/dlm"
@@ -81,6 +83,7 @@ func ESConn(env Environment) (*elastic.Client, error) {
 }
 
 // RDBConn returns established connection
+// This is duplicated. use RDBV3Conn instead.
 func RDBConn(env Environment) (*pool.Pool, error) {
 	df := func(args ...interface{}) pool.DialFunc {
 		return func(network, addr string) (*redis.Client, error) {
@@ -109,6 +112,40 @@ func RDBConn(env Environment) (*pool.Pool, error) {
 
 	msg := "[INFO] the redis connection established <%s>, version UNKNOWN"
 	logger.Printf(msg, env.EnvString("RDBURI"))
+
+	return p, err
+}
+
+// RDBV3Conn returns established connection
+func RDBV3Conn(env Environment) (*radix.Pool, error) {
+	uri := env.EnvString("RDBURI")
+
+	dr, err := dsn.Redis(uri)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse redis dsn <%s>: %s", uri, err)
+	}
+
+	selectDB, err := strconv.Atoi(dr.DB)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse redis db number <%s>: %s", uri, err)
+	}
+
+	// this is a ConnFunc which will set up a connection which is authenticated
+	// and has a 1 minute timeout on all operations
+	connFunc := func(network, addr string) (radix.Conn, error) {
+		return radix.Dial(network, addr,
+			radix.DialTimeout(time.Second*10),
+			radix.DialSelectDB(selectDB),
+		)
+	}
+
+	p, err := radix.NewPool("tcp", dr.HostPort, 10, radix.PoolConnFunc(connFunc))
+	if err != nil {
+		return nil, fmt.Errorf("uninitialized redis client <%s>: %s", uri, err)
+	}
+
+	msg := "[INFO] the redis@v3 connection established <%s>, version UNKNOWN"
+	logger.Printf(msg, uri)
 
 	return p, err
 }

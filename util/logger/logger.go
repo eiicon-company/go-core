@@ -35,7 +35,9 @@ func init() {
 	for _, ma := range major {
 		for _, mi := range minor {
 			vers = append(vers, fmt.Sprintf("/root/.gvm/pkgsets/go1.%s.%s/global/src/github.com/eiicon-company", ma, mi))
+			vers = append(vers, fmt.Sprintf("/root/.gvm/pkgsets/go1.%s.%s/global/pkg/mod/github.com/eiicon-company", ma, mi))
 			vers = append(vers, fmt.Sprintf("%s/src/github.com/eiicon-company", os.Getenv("GOPATH")))
+			vers = append(vers, fmt.Sprintf("%s/pkg/mod/github.com/eiicon-company", os.Getenv("GOPATH")))
 		}
 	}
 }

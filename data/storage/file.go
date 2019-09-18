@@ -26,7 +26,8 @@ type fileStorage struct {
 
 // Write will create file into the file systems.
 func (adp *fileStorage) Write(filename string, data []byte) error {
-	folder, filename := adp.dsn.Folder, adp.dsn.Join(filename)
+	filename = adp.dsn.Join(filename)
+	folder := filepath.Dir(filename)
 
 	fi, err := os.Stat(folder)
 	if err != nil {
