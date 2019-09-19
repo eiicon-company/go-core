@@ -25,7 +25,7 @@ type (
 )
 
 func newStorage(env util.Environment) Storage {
-	fURI, fURL := env.EnvString("FURI"), env.EnvString("FURL")
+	fURI := env.EnvString("FURI")
 
 	fu, _ := url.Parse(fURI)
 	switch fu.Scheme {
@@ -36,10 +36,8 @@ func newStorage(env util.Environment) Storage {
 			logger.Panicf(msg, fURI, err)
 		}
 
-		file.PublicURL = fURL
-
-		msg := "A storage folder is chosen filesystems to <%s> Public URL: <%v>"
-		logger.Infof(msg, file.Folder, fURL)
+		msg := "A storage folder is chosen filesystems to <%s> Public URL: <%s>"
+		logger.Infof(msg, file.Folder, file.PublicURL)
 
 		return &fileStorage{dsn: file}
 
@@ -50,10 +48,8 @@ func newStorage(env util.Environment) Storage {
 			logger.Panicf(msg, fURI, err)
 		}
 
-		s3.PublicURL = fURL
-
-		msg := "a storage folder is chosen s3 by <%s> Public URL: <%v>"
-		logger.Infof(msg, fURI, fURL)
+		msg := "a storage folder is chosen s3 by <%s> Public URL: <%s>"
+		logger.Infof(msg, fURI, s3.PublicURL)
 
 		return &s3Storage{dsn: s3}
 

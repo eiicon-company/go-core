@@ -3,6 +3,7 @@ package dsn
 import (
 	"fmt"
 	"net/url"
+	"path"
 	"path/filepath"
 	"time"
 
@@ -18,11 +19,12 @@ import (
 type (
 	// S3DSN s3://data_bucket/path/data.flac
 	S3DSN struct {
-		Sess      *session.Session
-		Bucket    string
-		Key       string
-		ACL       string
-		PublicURL string
+		Sess   *session.Session
+		Bucket string
+		Key    string
+		ACL    string
+
+		PublicURL *url.URL
 	}
 )
 
@@ -38,14 +40,16 @@ func (dsn *S3DSN) String(filename string) string {
 
 // URL returns https URL
 //
-// No auth URL
+// TODO: No auth or authed or private or public URL
 //
 // 	https://$bucket.s3.ap-southeast-2.amazonaws.com/private/$federated-identityLogo.jpg?AWSAccessKeyId=$KEY&Signature=$KEY&x-amz-security-token=$TOKEN
 // 	return fmt.Sprintf("https://%s%s", dsn.Bucket, aws.StringValue(dsn.Sess.Config.Region), dsn.Join(filename))
 //
 func (dsn *S3DSN) URL(filename string) string {
-	if dsn.PublicURL != "" {
-		return filepath.Join(dsn.PublicURL, filename)
+	u := dsn.PublicURL
+	if u != nil {
+		u.Path = path.Join(u.Path, filename)
+		return u.String()
 	}
 
 	svc := s3.New(dsn.Sess)
@@ -88,12 +92,22 @@ func S3(uri string) (*S3DSN, error) {
 		return nil, errors.Wrap(err, msg)
 	}
 
+	pubURL, err := url.Parse(u.Query().Get("url"))
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid url='' queryString")
+	}
+
 	dsn := &S3DSN{
 		Sess:   sess,
 		Bucket: u.Host,
 		Key:    u.Path,
 		ACL:    "private",
 	}
+
+	if pubURL.Scheme != "" && pubURL.Host != "" {
+		dsn.PublicURL = pubURL
+	}
+
 	return dsn, nil
 }
 
