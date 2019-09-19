@@ -46,8 +46,8 @@ func (dsn *S3DSN) String(filename string) string {
 // 	return fmt.Sprintf("https://%s%s", dsn.Bucket, aws.StringValue(dsn.Sess.Config.Region), dsn.Join(filename))
 //
 func (dsn *S3DSN) URL(filename string) string {
-	u := dsn.PublicURL
-	if u != nil {
+	if dsn.PublicURL != nil {
+		u, _ := url.Parse(filePublicURL)
 		u.Path = path.Join(u.Path, filename)
 		return u.String()
 	}

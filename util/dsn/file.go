@@ -31,9 +31,9 @@ func (dsn *FileDSN) String(filename string) string {
 
 // URL returns https URL
 func (dsn *FileDSN) URL(filename string) string {
-	u := dsn.PublicURL
-	if u == nil {
-		u, _ = url.Parse(filePublicURL)
+	u, _ := url.Parse(filePublicURL)
+	if dsn.PublicURL != nil {
+		u, _ = url.Parse(dsn.PublicURL.String())
 	}
 
 	u.Path = path.Join(u.Path, filename)
