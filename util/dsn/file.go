@@ -11,13 +11,13 @@ import (
 type (
 	// FileDSN file://./storage/data.flac
 	FileDSN struct {
-		Folder string
-		Route  string
+		Folder    string
+		PublicURL string
 	}
 )
 
-// FileRoute Http URL
-var FileRoute = "http://localhost:8000"
+// FilePublicURL Http URL can be set by outside scope
+var FilePublicURL = "http://localhost:8000"
 
 // Join returns ...
 func (dsn *FileDSN) Join(filename string) string {
@@ -30,11 +30,11 @@ func (dsn *FileDSN) String(filename string) string {
 
 // URL returns https URL
 func (dsn *FileDSN) URL(filename string) string {
-	route := dsn.Route
-	if route == "" {
-		route = FileRoute
+	pub := dsn.PublicURL
+	if pub == "" {
+		pub = FilePublicURL
 	}
-	return filepath.Join(route, filename)
+	return filepath.Join(pub, filename)
 }
 
 // File ...

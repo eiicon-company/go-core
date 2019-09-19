@@ -59,7 +59,7 @@ func SelectDBConn(dsn string) (*sql.DB, error) {
 func ESConn(env Environment) (*elastic.Client, error) {
 	var op []elastic.ClientOptionFunc
 	op = append(op, elastic.SetHttpClient(&http.Client{Timeout: 5 * time.Second}))
-	op = append(op, elastic.SetURL(env.EnvString("ESURI")))
+	op = append(op, elastic.SetURL(env.EnvString("ESURL")))
 	op = append(op, elastic.SetSniff(false))
 	op = append(op, elastic.SetErrorLog(log.New(os.Stderr, "[ELASTIC] ", log.LstdFlags)))
 
@@ -70,15 +70,15 @@ func ESConn(env Environment) (*elastic.Client, error) {
 
 	es, err := elastic.NewClient(op...)
 	if err != nil {
-		return nil, fmt.Errorf("uninitialized es client <%s>: %s", env.EnvString("ESURI"), err)
+		return nil, fmt.Errorf("uninitialized es client <%s>: %s", env.EnvString("ESURL"), err)
 	}
-	ver, err := es.ElasticsearchVersion(env.EnvString("ESURI"))
+	ver, err := es.ElasticsearchVersion(env.EnvString("ESURL"))
 	if err != nil {
-		return nil, fmt.Errorf("error got es version <%s>: %s", env.EnvString("ESURI"), err)
+		return nil, fmt.Errorf("error got es version <%s>: %s", env.EnvString("ESURL"), err)
 	}
 
 	msg := "[INFO] the elasticsearch connection established <%s>, version %s"
-	logger.Printf(msg, env.EnvString("ESURI"), ver)
+	logger.Printf(msg, env.EnvString("ESURL"), ver)
 	return es, nil
 }
 

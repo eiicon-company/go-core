@@ -18,10 +18,11 @@ import (
 type (
 	// S3DSN s3://data_bucket/path/data.flac
 	S3DSN struct {
-		Sess   *session.Session
-		Bucket string
-		Key    string
-		ACL    string
+		Sess      *session.Session
+		Bucket    string
+		Key       string
+		ACL       string
+		PublicURL string
 	}
 )
 
@@ -37,12 +38,16 @@ func (dsn *S3DSN) String(filename string) string {
 
 // URL returns https URL
 //
-// Public URL
+// No auth URL
 //
 // 	https://$bucket.s3.ap-southeast-2.amazonaws.com/private/$federated-identityLogo.jpg?AWSAccessKeyId=$KEY&Signature=$KEY&x-amz-security-token=$TOKEN
 // 	return fmt.Sprintf("https://%s%s", dsn.Bucket, aws.StringValue(dsn.Sess.Config.Region), dsn.Join(filename))
 //
 func (dsn *S3DSN) URL(filename string) string {
+	if dsn.PublicURL != "" {
+		return filepath.Join(dsn.PublicURL, filename)
+	}
+
 	svc := s3.New(dsn.Sess)
 
 	req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
@@ -50,7 +55,7 @@ func (dsn *S3DSN) URL(filename string) string {
 		Key:    aws.String(dsn.Key),
 	})
 
-	uri, err := req.Presign(24 * 5 * time.Hour) // TODO: Public or Private URL
+	uri, err := req.Presign(24 * 5 * time.Hour) // TODO: No auth: Public or Private URL
 	if err != nil {
 		return ""
 	}

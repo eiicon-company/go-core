@@ -20,34 +20,40 @@ type (
 		Read(filename string) ([]byte, error)
 		Merge(filename string, data []byte) error
 		Files(ptn string) ([]string, error)
+		URL(filename string) string
 	}
 )
 
 func newStorage(env util.Environment) Storage {
-	fu, _ := url.Parse(env.EnvString("FURI"))
+	fURI, fURL := env.EnvString("FURI"), env.EnvString("FURL")
 
+	fu, _ := url.Parse(fURI)
 	switch fu.Scheme {
 	default:
-		file, err := dsn.File(env.EnvString("FURI"))
+		file, err := dsn.File(fURI)
 		if err != nil {
-			msg := "[PANIC] failed to parse file uri <%s>: %s"
-			logger.Panicf(msg, env.EnvString("FURI"), err)
+			msg := "failed to parse file uri <%s>: %s"
+			logger.Panicf(msg, fURI, err)
 		}
 
-		msg := "[INFO] a storage folder is chosen filesystems to <%s>"
-		logger.Printf(msg, file.Folder)
+		file.PublicURL = fURL
+
+		msg := "A storage folder is chosen filesystems to <%s> Public URL: <%v>"
+		logger.Infof(msg, file.Folder, fURL)
 
 		return &fileStorage{dsn: file}
 
 	case "s3":
-		s3, err := dsn.S3(env.EnvString("FURI"))
+		s3, err := dsn.S3(fURI)
 		if err != nil {
-			msg := "[PANIC] failed to parse s3 uri <%s>: %s"
-			logger.Panicf(msg, env.EnvString("FURI"), err)
+			msg := "failed to parse s3 uri <%s>: %s"
+			logger.Panicf(msg, fURI, err)
 		}
 
-		msg := "[INFO] a storage folder is chosen s3 by <%s>"
-		logger.Printf(msg, env.EnvString("FURI"))
+		s3.PublicURL = fURL
+
+		msg := "a storage folder is chosen s3 by <%s> Public URL: <%v>"
+		logger.Infof(msg, fURI, fURL)
 
 		return &s3Storage{dsn: s3}
 

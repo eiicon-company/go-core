@@ -98,6 +98,11 @@ func (adp *fileStorage) Files(ptn string) ([]string, error) {
 	return files, nil
 }
 
+// URL returns Public URL
+func (adp *fileStorage) URL(filename string) string {
+	return adp.dsn.URL(filename)
+}
+
 // gzip will create sitemap file as a gzip.
 func (adp *fileStorage) gzip(file io.Writer, data []byte) {
 	gz := gzip.NewWriter(file)
