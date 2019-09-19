@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	cloud.google.com/go/bigquery v1.0.1
+	cloud.google.com/go/pubsub v1.0.1 // indirect
 	github.com/aws/aws-sdk-go v1.23.7
 	github.com/certifi/gocertifi v0.0.0-20190506164543-d2eda7129713 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
