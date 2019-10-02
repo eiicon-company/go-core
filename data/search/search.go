@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 
 	"github.com/eiicon-company/go-core/util"
 )
