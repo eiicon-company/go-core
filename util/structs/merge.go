@@ -59,5 +59,5 @@ func OverwriteMerge(dest interface{}, values ...interface{}) error {
 		}
 	}
 
-	return mergo.Map(dest, data, mergo.WithTransformers(timeTransfomer{}))
+	return mergo.MapWithOverwrite(dest, data, mergo.WithTransformers(timeTransfomer{}))
 }

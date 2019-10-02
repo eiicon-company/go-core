@@ -133,3 +133,8 @@ func (adp *s3Storage) Files(ptn string) ([]string, error) {
 
 	return files, nil
 }
+
+// URL returns Public URL
+func (adp *s3Storage) URL(filename string) string {
+	return adp.dsn.URL(filename)
+}

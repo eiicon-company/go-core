@@ -26,7 +26,8 @@ type fileStorage struct {
 
 // Write will create file into the file systems.
 func (adp *fileStorage) Write(filename string, data []byte) error {
-	folder, filename := adp.dsn.Folder, adp.dsn.Join(filename)
+	filename = adp.dsn.Join(filename)
+	folder := filepath.Dir(filename)
 
 	fi, err := os.Stat(folder)
 	if err != nil {
@@ -95,6 +96,11 @@ func (adp *fileStorage) Files(ptn string) ([]string, error) {
 	}
 
 	return files, nil
+}
+
+// URL returns Public URL
+func (adp *fileStorage) URL(filename string) string {
+	return adp.dsn.URL(filename)
 }
 
 // gzip will create sitemap file as a gzip.

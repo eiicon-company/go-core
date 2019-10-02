@@ -3,13 +3,16 @@ package dsn
 import (
 	"fmt"
 	"net/url"
+	"path"
 	"path/filepath"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/pkg/errors"
 )
 
@@ -20,6 +23,8 @@ type (
 		Bucket string
 		Key    string
 		ACL    string
+
+		PublicURL *url.URL
 	}
 )
 
@@ -31,6 +36,35 @@ func (dsn *S3DSN) Join(filename string) string {
 
 func (dsn *S3DSN) String(filename string) string {
 	return fmt.Sprintf("s3://%s%s", dsn.Bucket, dsn.Join(filename))
+}
+
+// URL returns https URL
+//
+// TODO: No auth or authed or private or public URL
+//
+// 	https://$bucket.s3.ap-southeast-2.amazonaws.com/private/$federated-identityLogo.jpg?AWSAccessKeyId=$KEY&Signature=$KEY&x-amz-security-token=$TOKEN
+// 	return fmt.Sprintf("https://%s%s", dsn.Bucket, aws.StringValue(dsn.Sess.Config.Region), dsn.Join(filename))
+//
+func (dsn *S3DSN) URL(filename string) string {
+	if dsn.PublicURL != nil {
+		u, _ := url.Parse(filePublicURL)
+		u.Path = path.Join(u.Path, filename)
+		return u.String()
+	}
+
+	svc := s3.New(dsn.Sess)
+
+	req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String(dsn.Bucket),
+		Key:    aws.String(dsn.Key),
+	})
+
+	uri, err := req.Presign(24 * 5 * time.Hour) // TODO: No auth: Public or Private URL
+	if err != nil {
+		return ""
+	}
+
+	return uri
 }
 
 // S3 ...
@@ -58,12 +92,22 @@ func S3(uri string) (*S3DSN, error) {
 		return nil, errors.Wrap(err, msg)
 	}
 
+	pubURL, err := url.Parse(u.Query().Get("url"))
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid url='' queryString")
+	}
+
 	dsn := &S3DSN{
 		Sess:   sess,
 		Bucket: u.Host,
 		Key:    u.Path,
 		ACL:    "private",
 	}
+
+	if pubURL.Scheme != "" && pubURL.Host != "" {
+		dsn.PublicURL = pubURL
+	}
+
 	return dsn, nil
 }
 
