@@ -19,6 +19,7 @@ require (
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/mediocregopher/radix.v2 v0.0.0-20181115013041-b67df6e626f9
 	github.com/mediocregopher/radix/v3 v3.4.0
+	github.com/oklog/ulid/v2 v2.0.2
 	github.com/oleiade/reflections v1.0.0 // indirect
 	github.com/olivere/elastic/v7 v7.0.6
 	github.com/pkg/errors v0.8.1
