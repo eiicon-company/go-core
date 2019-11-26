@@ -16,7 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/gobwas/glob"
-	"github.com/pkg/errors"
+	"golang.org/x/xerrors"
 
 	"github.com/eiicon-company/go-core/util"
 	"github.com/eiicon-company/go-core/util/dsn"
@@ -57,7 +57,7 @@ func (adp *s3Storage) Write(filename string, data []byte) error {
 	})
 
 	if err != nil {
-		return errors.Wrap(err, "[F] s3 upload file failed")
+		return xerrors.Errorf("[F] s3 upload file failed: %w", err)
 	}
 
 	return nil
@@ -67,7 +67,7 @@ func (adp *s3Storage) Write(filename string, data []byte) error {
 func (adp *s3Storage) Read(filename string) ([]byte, error) {
 	file, err := ioutil.TempFile("", "s3storage")
 	if err != nil {
-		return nil, errors.Wrap(err, "[F] s3 read file failed")
+		return nil, xerrors.Errorf("[F] s3 read file failed: %w", err)
 	}
 
 	manager := s3manager.NewDownloader(adp.dsn.Sess)
@@ -76,7 +76,7 @@ func (adp *s3Storage) Read(filename string) ([]byte, error) {
 		Key:    aws.String(adp.dsn.Join(filename)),
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "[F] s3 download file failed")
+		return nil, xerrors.Errorf("[F] s3 download file failed: %w", err)
 	}
 
 	var reader io.ReadCloser = file
@@ -84,7 +84,7 @@ func (adp *s3Storage) Read(filename string) ([]byte, error) {
 	if gzipPtn.MatchString(filename) {
 		reader, err = gzip.NewReader(reader)
 		if err != nil {
-			return nil, errors.Wrap(err, "[F] gzip read failed")
+			return nil, xerrors.Errorf("[F] gzip read failed: %w", err)
 		}
 	}
 

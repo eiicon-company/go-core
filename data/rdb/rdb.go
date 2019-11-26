@@ -7,7 +7,7 @@ import (
 
 	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/mediocregopher/radix.v2/redis"
-	"github.com/pkg/errors"
+	"golang.org/x/xerrors"
 
 	"github.com/eiicon-company/go-core/util"
 )
@@ -80,7 +80,7 @@ func (rc *rdb) GetInt(key string) (int64, error) {
 	n, err := strconv.ParseInt(numeric, 10, 64)
 	if err != nil {
 		msg := fmt.Sprintf("%s cloud not cast", key)
-		return 0, errors.Wrap(err, msg)
+		return 0, xerrors.Errorf(err, msg)
 	}
 
 	return n, nil
@@ -94,7 +94,7 @@ func (rc *rdb) GetFloat(key string) (float64, error) {
 	n, err := strconv.ParseFloat(numeric, 64)
 	if err != nil {
 		msg := fmt.Sprintf("%s cloud not cast", key)
-		return 0, errors.Wrap(err, msg)
+		return 0, xerrors.Errorf(err, msg)
 	}
 
 	return n, nil

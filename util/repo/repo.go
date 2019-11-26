@@ -1,10 +1,9 @@
 package repo
 
 import (
-	"errors"
-
 	"github.com/eiicon-company/go-core/util/priv"
 	"github.com/volatiletech/sqlboiler/queries/qm"
+	"golang.org/x/xerrors"
 )
 
 const (
@@ -14,7 +13,7 @@ const (
 
 var (
 	// ErrExists a record already exists
-	ErrExists = errors.New("already exists")
+	ErrExists = xerrors.New("already exists")
 )
 
 var (
@@ -38,7 +37,7 @@ func Fuzzy(v interface{}, arr []interface{}) bool {
 // PreloadBy assembles QueryMod with where statements
 func PreloadBy(where []qm.QueryMod, loads ...string) ([]qm.QueryMod, error) {
 	if len(where) <= 0 {
-		return nil, errors.New("no queries")
+		return nil, xerrors.New("no queries")
 	}
 
 	return append(Preloads(loads...), where...), nil

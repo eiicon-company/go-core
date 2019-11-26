@@ -22,13 +22,14 @@ require (
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/oleiade/reflections v1.0.0 // indirect
 	github.com/olivere/elastic/v7 v7.0.6
-	github.com/pkg/errors v0.8.1
 	github.com/spf13/cast v1.3.0 // indirect
 	github.com/stretchr/testify v1.4.0 // indirect
 	github.com/volatiletech/inflect v0.0.0-20170731032912-e7201282ae8d // indirect
 	github.com/volatiletech/null v8.0.0+incompatible // indirect
 	github.com/volatiletech/sqlboiler v3.4.0+incompatible
 	go.uber.org/dig v1.7.0
+	golang.org/x/xerrors v0.0.0-20190513163551-3ee3066db522
 	google.golang.org/grpc v1.23.0
+	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0 // indirect
 	gopkg.in/oleiade/reflections.v1 v1.0.0
 )

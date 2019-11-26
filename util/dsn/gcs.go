@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"path/filepath"
 
-	"github.com/pkg/errors"
+	"golang.org/x/xerrors"
 )
 
 type (
@@ -33,7 +33,7 @@ func GCS(uri string) (*GCSDSN, error) {
 	}
 	u, err := url.Parse(uri)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid gcs dsn")
+		return nil, xerrors.Errorf("invalid gcs dsn: %w", err)
 	}
 	if u.Scheme != "gs" {
 		return nil, ef("invalid gs scheme: %s", u.Scheme)

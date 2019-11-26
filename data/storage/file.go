@@ -11,11 +11,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pkg/errors"
-
 	"github.com/eiicon-company/go-core/util"
 	"github.com/eiicon-company/go-core/util/dsn"
 	"github.com/eiicon-company/go-core/util/logger"
+	"golang.org/x/xerrors"
 )
 
 // fileStorage provides implementation file object interface.
@@ -59,7 +58,7 @@ func (adp *fileStorage) Read(filename string) ([]byte, error) {
 
 	reader, err := os.Open(adp.dsn.Join(filename))
 	if err != nil {
-		return nil, errors.Wrap(err, "[F] file read failed")
+		return nil, xerrors.Errorf("[F] file read failed: %w", err)
 	}
 
 	defer reader.Close()
@@ -67,7 +66,7 @@ func (adp *fileStorage) Read(filename string) ([]byte, error) {
 	if gzipPtn.MatchString(filename) {
 		reader, err = gzip.NewReader(reader)
 		if err != nil {
-			return nil, errors.Wrap(err, "[F] gzip read failed")
+			return nil, xerrors.Errorf("[F] gzip read failed: %w", err)
 		}
 	}
 
