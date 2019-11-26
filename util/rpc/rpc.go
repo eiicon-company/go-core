@@ -4,10 +4,9 @@ import (
 	"database/sql"
 	"time"
 
+	"golang.org/x/xerrors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/pkg/errors"
 
 	"github.com/eiicon-company/go-core/util/repo"
 )
@@ -22,10 +21,10 @@ func GRPCError(err error) error {
 	}); ok {
 		return err
 	}
-	if errors.Cause(err) == sql.ErrNoRows {
+	if xerrors.Is(err, sql.ErrNoRows) {
 		return status.Error(codes.NotFound, err.Error())
 	}
-	if errors.Cause(err) == repo.ErrExists {
+	if xerrors.Is(err, repo.ErrExists) {
 		return status.Error(codes.AlreadyExists, err.Error())
 	}
 	if err != nil {

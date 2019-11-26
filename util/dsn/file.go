@@ -6,7 +6,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/pkg/errors"
+	"golang.org/x/xerrors"
 )
 
 type (
@@ -47,7 +47,7 @@ func File(uri string) (*FileDSN, error) {
 	}
 	u, err := url.Parse(uri)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid file dsn")
+		return nil, xerrors.Errorf("invalid file dsn: %w", err)
 	}
 	if u.Scheme != "file" {
 		return nil, ef("invalid file scheme: %s", u.Scheme)
@@ -64,12 +64,12 @@ func File(uri string) (*FileDSN, error) {
 	folder := fmt.Sprintf("%s%s", u.Host, u.Path)
 	abs, err := filepath.Abs(folder)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid file dsn")
+		return nil, xerrors.Errorf("invalid file dsn: %w", err)
 	}
 
 	pubURL, err := url.Parse(u.Query().Get("url"))
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid url='' queryString")
+		return nil, xerrors.Errorf("invalid url='' queryString: %w", err)
 	}
 
 	if pubURL.Scheme == "" || pubURL.Host == "" {

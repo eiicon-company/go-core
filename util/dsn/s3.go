@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/pkg/errors"
+	"golang.org/x/xerrors"
 )
 
 type (
@@ -74,7 +74,7 @@ func S3(uri string) (*S3DSN, error) {
 	}
 	u, err := url.Parse(uri)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid s3 dsn")
+		return nil, xerrors.Errorf("invalid s3 dsn: %w", err)
 	}
 	if u.Scheme != "s3" {
 		return nil, ef("invalid s3 scheme: %s", u.Scheme)
@@ -88,13 +88,13 @@ func S3(uri string) (*S3DSN, error) {
 
 	sess, err := awsSession()
 	if err != nil {
-		msg := "invalid s3 environment variables"
-		return nil, errors.Wrap(err, msg)
+		msg := "invalid s3 environment variables: %w"
+		return nil, xerrors.Errorf(msg, err)
 	}
 
 	pubURL, err := url.Parse(u.Query().Get("url"))
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid url='' queryString")
+		return nil, xerrors.Errorf("invalid url='' queryString: %w", err)
 	}
 
 	dsn := &S3DSN{
@@ -114,8 +114,8 @@ func S3(uri string) (*S3DSN, error) {
 func awsSession() (*session.Session, error) {
 	meta, err := session.NewSession()
 	if err != nil {
-		msg := "aws session failed creation"
-		return nil, errors.Wrap(err, msg)
+		msg := "aws session failed creation: %w"
+		return nil, xerrors.Errorf(msg, err)
 	}
 
 	creds := credentials.NewChainCredentials(
@@ -127,8 +127,8 @@ func awsSession() (*session.Session, error) {
 		})
 
 	if _, err := creds.Get(); err != nil {
-		msg := "invalid aws environment variables"
-		return nil, errors.Wrap(err, msg)
+		msg := "invalid aws environment variables: %w"
+		return nil, xerrors.Errorf(msg, err)
 	}
 
 	sess, err := session.NewSessionWithOptions(session.Options{
@@ -136,8 +136,8 @@ func awsSession() (*session.Session, error) {
 		SharedConfigState: session.SharedConfigDisable,
 	})
 	if err != nil {
-		msg := "invalid aws environment variables"
-		return nil, errors.Wrap(err, msg)
+		msg := "invalid aws environment variables: %w"
+		return nil, xerrors.Errorf(msg, err)
 	}
 	if aws.StringValue(sess.Config.Region) == "" {
 		return nil, ef("invalid aws region is blank")

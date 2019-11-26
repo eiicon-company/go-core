@@ -1,11 +1,11 @@
 package crypto
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"golang.org/x/xerrors"
 )
 
 var (
@@ -64,7 +64,7 @@ func JwtParse(encrypted string) (interface{}, error) {
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
-		return nil, errors.New("invalid token")
+		return nil, xerrors.New("invalid token")
 	}
 
 	return claims["data"], nil
