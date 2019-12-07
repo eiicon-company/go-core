@@ -11,6 +11,8 @@ type (
 		IsProd() bool
 		// IsDev returns determined develop environment mode
 		IsDev() bool
+		// IsLocal returns determined local environment mode
+		IsLocal() bool
 		// IsDebug returns
 		IsDebug() bool
 		// IsSentry returns
