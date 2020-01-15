@@ -97,6 +97,15 @@ func (adp *s3Storage) Read(filename string) ([]byte, error) {
 	return data, err
 }
 
+// Delete will delete file from the file systems.
+func (adp *s3Storage) Delete(filename string) error {
+	_, err := s3.New(adp.dsn.Sess).DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(adp.dsn.Bucket),
+		Key:    aws.String(adp.dsn.Join(filename)),
+	})
+	return err
+}
+
 // Merge will merge file into the s3
 func (adp *s3Storage) Merge(filename string, data []byte) error {
 	head, _ := adp.Read(filename)

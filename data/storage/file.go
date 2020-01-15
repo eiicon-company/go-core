@@ -73,6 +73,12 @@ func (adp *fileStorage) Read(filename string) ([]byte, error) {
 	return ioutil.ReadAll(reader)
 }
 
+// Delete will delete file from the file systems.
+func (adp *fileStorage) Delete(filename string) error {
+	path := adp.dsn.Join(filename)
+	return os.Remove(path)
+}
+
 // Merge will merge file into the file systems.
 func (adp *fileStorage) Merge(filename string, data []byte) error {
 	head, _ := adp.Read(filename)
