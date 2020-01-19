@@ -55,7 +55,7 @@ func Preload(id int, loads ...string) []qm.QueryMod {
 
 // Preloads assembles loads
 func Preloads(loads ...string) []qm.QueryMod {
-	mods := []qm.QueryMod{qm.OrderBy("id ASC")}
+	mods := []qm.QueryMod{}
 	for _, load := range loads {
 		mods = append(mods, qm.Load(load))
 	}
