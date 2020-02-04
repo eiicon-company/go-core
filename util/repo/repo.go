@@ -40,7 +40,7 @@ func PreloadBy(where []qm.QueryMod, loads ...string) ([]qm.QueryMod, error) {
 		return nil, xerrors.New("no queries")
 	}
 
-	return append(Preloads(loads...), where...), nil
+	return append(where, Preloads(loads...)...), nil
 }
 
 // Preload assembles QueryMod with primary id
@@ -55,7 +55,7 @@ func Preload(id int, loads ...string) []qm.QueryMod {
 
 // Preloads assembles loads
 func Preloads(loads ...string) []qm.QueryMod {
-	mods := []qm.QueryMod{qm.OrderBy("id ASC")}
+	mods := []qm.QueryMod{AscOrder}
 	for _, load := range loads {
 		mods = append(mods, qm.Load(load))
 	}

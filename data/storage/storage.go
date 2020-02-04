@@ -18,6 +18,7 @@ type (
 	Storage interface {
 		Write(filename string, data []byte) error
 		Read(filename string) ([]byte, error)
+		Delete(filename string) error
 		Merge(filename string, data []byte) error
 		Files(ptn string) ([]string, error)
 		URL(filename string) string
