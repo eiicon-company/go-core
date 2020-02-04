@@ -2,7 +2,6 @@
 package rdb
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/mediocregopher/radix.v2/pool"
@@ -79,8 +78,7 @@ func (rc *rdb) GetInt(key string) (int64, error) {
 	}
 	n, err := strconv.ParseInt(numeric, 10, 64)
 	if err != nil {
-		msg := fmt.Sprintf("%s cloud not cast", key)
-		return 0, xerrors.Errorf(err, msg)
+		return 0, xerrors.Errorf("%s cloud not cast: %w", key, err)
 	}
 
 	return n, nil
@@ -93,8 +91,7 @@ func (rc *rdb) GetFloat(key string) (float64, error) {
 	}
 	n, err := strconv.ParseFloat(numeric, 64)
 	if err != nil {
-		msg := fmt.Sprintf("%s cloud not cast", key)
-		return 0, xerrors.Errorf(err, msg)
+		return 0, xerrors.Errorf("%s cloud not cast: %w", key, err)
 	}
 
 	return n, nil
