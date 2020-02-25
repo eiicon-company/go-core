@@ -13,7 +13,7 @@ import (
 
 	"cloud.google.com/go/bigquery"
 
-	dlmrdb "github.com/gomodule/redigo/redis"
+	dlmredis "github.com/gomodule/redigo/redis"
 	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/mediocregopher/radix.v2/redis"
 	"github.com/mediocregopher/radix/v3"
@@ -82,9 +82,9 @@ func ESConn(env Environment) (*elastic.Client, error) {
 	return es, nil
 }
 
-// RDBConn returns established connection
-// This is duplicated. use RDBV3Conn instead.
-func RDBConn(env Environment) (*pool.Pool, error) {
+// RedisConn returns established connection
+// This is duplicated. use RedisV3Conn instead.
+func RedisConn(env Environment) (*pool.Pool, error) {
 	df := func(args ...interface{}) pool.DialFunc {
 		return func(network, addr string) (*redis.Client, error) {
 			client, err := redis.DialTimeout(network, addr, 5*time.Second)
@@ -101,24 +101,24 @@ func RDBConn(env Environment) (*pool.Pool, error) {
 		}
 	}
 
-	dr, err := dsn.Redis(env.EnvString("RDBURI"))
+	dr, err := dsn.Redis(env.EnvString("RedisURI"))
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse redis dsn <%s>: %s", env.EnvString("RDBURI"), err)
+		return nil, fmt.Errorf("failed to parse redis dsn <%s>: %s", env.EnvString("RedisURI"), err)
 	}
 	p, err := pool.NewCustom("tcp", dr.HostPort, 10, df(dr.DB))
 	if err != nil {
-		return nil, fmt.Errorf("uninitialized redis client <%s>: %s", env.EnvString("RDBURI"), err)
+		return nil, fmt.Errorf("uninitialized redis client <%s>: %s", env.EnvString("RedisURI"), err)
 	}
 
 	msg := "[INFO] the redis connection established <%s>, version UNKNOWN"
-	logger.Printf(msg, env.EnvString("RDBURI"))
+	logger.Printf(msg, env.EnvString("RedisURI"))
 
 	return p, err
 }
 
-// RDBV3Conn returns established connection
-func RDBV3Conn(env Environment) (*radix.Pool, error) {
-	uri := env.EnvString("RDBURI")
+// RedisV3Conn returns established connection
+func RedisV3Conn(env Environment) (*radix.Pool, error) {
+	uri := env.EnvString("RedisURI")
 
 	dr, err := dsn.Redis(uri)
 	if err != nil {
@@ -157,11 +157,11 @@ func DLMConn(env Environment) (*dlm.DLM, error) {
 		return nil, fmt.Errorf("failed to parse DLM dsn <%s>: %s", env.EnvString("DLMURI"), err)
 	}
 
-	pool := &dlmrdb.Pool{
+	pool := &dlmredis.Pool{
 		MaxIdle:     3,
 		IdleTimeout: 240 * time.Second,
-		Dial: func() (dlmrdb.Conn, error) {
-			c, err := dlmrdb.Dial("tcp", dr.HostPort)
+		Dial: func() (dlmredis.Conn, error) {
+			c, err := dlmredis.Dial("tcp", dr.HostPort)
 			if err != nil {
 				return nil, err
 			}
@@ -171,7 +171,7 @@ func DLMConn(env Environment) (*dlm.DLM, error) {
 			}
 			return c, nil
 		},
-		TestOnBorrow: func(c dlmrdb.Conn, t time.Time) error {
+		TestOnBorrow: func(c dlmredis.Conn, t time.Time) error {
 			if time.Since(t) < time.Minute {
 				return nil
 			}
@@ -183,7 +183,7 @@ func DLMConn(env Environment) (*dlm.DLM, error) {
 	conn := pool.Get()
 	defer conn.Close()
 
-	if _, err := dlmrdb.String(conn.Do("PING")); err != nil {
+	if _, err := dlmredis.String(conn.Do("PING")); err != nil {
 		return nil, fmt.Errorf("uninitialized DLM client <%s>: %s", env.EnvString("DLMURI"), err)
 	}
 

@@ -46,6 +46,5 @@ $ make gomodule
 ## DATA I/O
 
 - storage: s3, filesystam, gcs, etc..
-- rdb: redis
 
 
