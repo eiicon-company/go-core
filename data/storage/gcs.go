@@ -60,7 +60,7 @@ func (adp *gcsStorage) Write(ctx context.Context, filename string, data []byte) 
 		}()
 	}
 
-	if _, err = io.Copy(wc, reader); err != nil {
+	if _, err := io.Copy(wc, reader); err != nil {
 		return xerrors.Errorf("[F] gcs write failed: %w", err)
 	}
 	if err := wc.Close(); err != nil {
