@@ -54,10 +54,16 @@ func newStorage(env util.Environment) Storage {
 
 		return &s3Storage{dsn: s3}
 
-		// case "gcs": TODO: gs://<bucket_name>/<file_path_inside_bucket>.
+		// case "gcs": // gs://<bucket_name>/<file_path_inside_bucket>.
+		// 	s3, err := dsn.S3(fURI)
+		// 	if err != nil {
+		// 		msg := "failed to parse s3 uri <%s>: %s"
+		// 		logger.Panicf(msg, fURI, err)
+		// 	}
 		//
+		// 	msg := "a storage folder is chosen s3 by <%s> Public URL: <%s>"
+		// 	logger.Infof(msg, fURI, s3.PublicURL)
 		//
-		//
-		//
+		// 	return &s3Storage{dsn: s3}
 	}
 }

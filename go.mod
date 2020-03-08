@@ -5,8 +5,8 @@ go 1.13
 require (
 	cloud.google.com/go v0.53.0 // indirect
 	cloud.google.com/go/bigquery v1.4.0
+	cloud.google.com/go/storage v1.5.0
 	github.com/DATA-DOG/go-sqlmock v1.4.1 // indirect
-	github.com/apache/thrift v0.12.0 // indirect
 	github.com/aws/aws-sdk-go v1.29.9
 	github.com/certifi/gocertifi v0.0.0-20200211180108-c7c1fbc02894 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -25,8 +25,6 @@ require (
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/oleiade/reflections v1.0.0 // indirect
 	github.com/olivere/elastic/v7 v7.0.11
-	github.com/openzipkin/zipkin-go v0.1.6 // indirect
-	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/volatiletech/inflect v0.0.0-20170731032912-e7201282ae8d // indirect
 	github.com/volatiletech/null v8.0.0+incompatible // indirect
@@ -34,6 +32,7 @@ require (
 	go.uber.org/dig v1.8.0
 	golang.org/x/exp v0.0.0-20200224162631-6cc2880d07d6 // indirect
 	golang.org/x/net v0.0.0-20200222125558-5a598a2470a0 // indirect
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae // indirect
 	golang.org/x/tools v0.0.0-20200225022059-a0ec867d517c // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
