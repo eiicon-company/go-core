@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"net/url"
 	"regexp"
 
@@ -16,12 +17,12 @@ var (
 type (
 	// Storage provides interface for writes some of kinda data.
 	Storage interface {
-		Write(filename string, data []byte) error
-		Read(filename string) ([]byte, error)
-		Delete(filename string) error
-		Merge(filename string, data []byte) error
-		Files(ptn string) ([]string, error)
-		URL(filename string) string
+		Write(ctx context.Context, filename string, data []byte) error
+		Read(ctx context.Context, filename string) ([]byte, error)
+		Delete(ctx context.Context, filename string) error
+		Merge(ctx context.Context, filename string, data []byte) error
+		Files(ctx context.Context, ptn string) ([]string, error)
+		URL(ctx context.Context, filename string) string
 	}
 )
 
@@ -54,16 +55,16 @@ func newStorage(env util.Environment) Storage {
 
 		return &s3Storage{dsn: s3}
 
-		// case "gcs": // gs://<bucket_name>/<file_path_inside_bucket>.
-		// 	s3, err := dsn.S3(fURI)
-		// 	if err != nil {
-		// 		msg := "failed to parse s3 uri <%s>: %s"
-		// 		logger.Panicf(msg, fURI, err)
-		// 	}
-		//
-		// 	msg := "a storage folder is chosen s3 by <%s> Public URL: <%s>"
-		// 	logger.Infof(msg, fURI, s3.PublicURL)
-		//
-		// 	return &s3Storage{dsn: s3}
+	case "gs": // gs://<bucket_name>/<file_path_inside_bucket>.
+		gcs, err := dsn.GCS(fURI)
+		if err != nil {
+			msg := "failed to parse gcs uri <%s>: %s"
+			logger.Panicf(msg, fURI, err)
+		}
+
+		msg := "a storage folder is chosen gcs by <%s> Public URL: <%s>"
+		logger.Infof(msg, fURI, gcs.PublicURL)
+
+		return &gcsStorage{dsn: gcs}
 	}
 }

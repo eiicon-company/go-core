@@ -6,17 +6,19 @@ package storage
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
 
+	"golang.org/x/xerrors"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/gobwas/glob"
-	"golang.org/x/xerrors"
 
 	"github.com/eiicon-company/go-core/util"
 	"github.com/eiicon-company/go-core/util/dsn"
@@ -25,12 +27,12 @@ import (
 
 // s3Storage provides implementation s3 resource interface.
 type s3Storage struct {
-	Env util.Environment `inject:""`
+	Env util.Environment
 	dsn *dsn.S3DSN
 }
 
 // Write will create file into the s3.
-func (adp *s3Storage) Write(filename string, data []byte) error {
+func (adp *s3Storage) Write(ctx context.Context, filename string, data []byte) error {
 	var reader io.Reader = bytes.NewReader(data)
 
 	if gzipPtn.MatchString(filename) {
@@ -40,7 +42,7 @@ func (adp *s3Storage) Write(filename string, data []byte) error {
 		go func() {
 			gz := gzip.NewWriter(writer)
 			if _, err := io.Copy(gz, bytes.NewReader(data)); err != nil {
-				logger.E("s3 write: %s", err)
+				logger.E("[F] s3 gzip write: %s", err)
 			}
 
 			gz.Close()
@@ -64,7 +66,7 @@ func (adp *s3Storage) Write(filename string, data []byte) error {
 }
 
 // Read returns file data from the s3
-func (adp *s3Storage) Read(filename string) ([]byte, error) {
+func (adp *s3Storage) Read(ctx context.Context, filename string) ([]byte, error) {
 	file, err := ioutil.TempFile("", "s3storage")
 	if err != nil {
 		return nil, xerrors.Errorf("[F] s3 read file failed: %w", err)
@@ -80,25 +82,23 @@ func (adp *s3Storage) Read(filename string) ([]byte, error) {
 	}
 
 	var reader io.ReadCloser = file
+	defer reader.Close()
 
 	if gzipPtn.MatchString(filename) {
 		reader, err = gzip.NewReader(reader)
 		if err != nil {
-			return nil, xerrors.Errorf("[F] gzip read failed: %w", err)
+			return nil, xerrors.Errorf("[F] s3 gzip read failed: %w", err)
 		}
 	}
 
 	data, err := ioutil.ReadAll(reader)
 
-	// XXX: will be fiexed to many file open
-	os.Remove(file.Name())
-	reader.Close()
-
+	os.Remove(file.Name()) // TODO: defer
 	return data, err
 }
 
 // Delete will delete file from the file systems.
-func (adp *s3Storage) Delete(filename string) error {
+func (adp *s3Storage) Delete(ctx context.Context, filename string) error {
 	_, err := s3.New(adp.dsn.Sess).DeleteObject(&s3.DeleteObjectInput{
 		Bucket: aws.String(adp.dsn.Bucket),
 		Key:    aws.String(adp.dsn.Join(filename)),
@@ -107,15 +107,15 @@ func (adp *s3Storage) Delete(filename string) error {
 }
 
 // Merge will merge file into the s3
-func (adp *s3Storage) Merge(filename string, data []byte) error {
-	head, _ := adp.Read(filename)
+func (adp *s3Storage) Merge(ctx context.Context, filename string, data []byte) error {
+	head, _ := adp.Read(ctx, filename)
 	entire := append(head, data...)
 
-	return adp.Write(filename, entire)
+	return adp.Write(ctx, filename, entire)
 }
 
 // Files returns filename list which is traversing with glob from s3 storage.
-func (adp *s3Storage) Files(ptn string) ([]string, error) {
+func (adp *s3Storage) Files(ctx context.Context, ptn string) ([]string, error) {
 	g, err := glob.Compile(strings.TrimLeft(adp.dsn.Join(ptn), "/"))
 	if err != nil {
 		return []string{}, err
@@ -144,6 +144,6 @@ func (adp *s3Storage) Files(ptn string) ([]string, error) {
 }
 
 // URL returns Public URL
-func (adp *s3Storage) URL(filename string) string {
+func (adp *s3Storage) URL(ctx context.Context, filename string) string {
 	return adp.dsn.URL(filename)
 }

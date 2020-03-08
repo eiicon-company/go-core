@@ -36,7 +36,7 @@ require (
 	golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae // indirect
 	golang.org/x/tools v0.0.0-20200225022059-a0ec867d517c // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
-	google.golang.org/api v0.18.0 // indirect
+	google.golang.org/api v0.18.0
 	google.golang.org/genproto v0.0.0-20200224152610-e50cd9704f63 // indirect
 	google.golang.org/grpc v1.27.1
 	gopkg.in/oleiade/reflections.v1 v1.0.0

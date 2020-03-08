@@ -5,6 +5,7 @@ package storage
 
 import (
 	"compress/gzip"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -19,12 +20,12 @@ import (
 
 // fileStorage provides implementation file object interface.
 type fileStorage struct {
-	Env util.Environment `inject:""`
+	Env util.Environment
 	dsn *dsn.FileDSN
 }
 
 // Write will create file into the file systems.
-func (adp *fileStorage) Write(filename string, data []byte) error {
+func (adp *fileStorage) Write(ctx context.Context, filename string, data []byte) error {
 	filename = adp.dsn.Join(filename)
 	folder := filepath.Dir(filename)
 
@@ -53,7 +54,7 @@ func (adp *fileStorage) Write(filename string, data []byte) error {
 }
 
 // Read returns file data from the file systems.
-func (adp *fileStorage) Read(filename string) ([]byte, error) {
+func (adp *fileStorage) Read(ctx context.Context, filename string) ([]byte, error) {
 	var reader io.ReadCloser
 
 	reader, err := os.Open(adp.dsn.Join(filename))
@@ -74,21 +75,21 @@ func (adp *fileStorage) Read(filename string) ([]byte, error) {
 }
 
 // Delete will delete file from the file systems.
-func (adp *fileStorage) Delete(filename string) error {
+func (adp *fileStorage) Delete(ctx context.Context, filename string) error {
 	path := adp.dsn.Join(filename)
 	return os.Remove(path)
 }
 
 // Merge will merge file into the file systems.
-func (adp *fileStorage) Merge(filename string, data []byte) error {
-	head, _ := adp.Read(filename)
+func (adp *fileStorage) Merge(ctx context.Context, filename string, data []byte) error {
+	head, _ := adp.Read(ctx, filename)
 	entire := append(head, data...)
 
-	return adp.Write(filename, entire)
+	return adp.Write(ctx, filename, entire)
 }
 
 // Files returns filename list which is traversing with glob from filesystem.
-func (adp *fileStorage) Files(ptn string) ([]string, error) {
+func (adp *fileStorage) Files(ctx context.Context, ptn string) ([]string, error) {
 	matches, err := filepath.Glob(adp.dsn.Join(ptn))
 	if err != nil {
 		logger.Printf("Failed to retrieve list files %s", err)
@@ -104,7 +105,7 @@ func (adp *fileStorage) Files(ptn string) ([]string, error) {
 }
 
 // URL returns Public URL
-func (adp *fileStorage) URL(filename string) string {
+func (adp *fileStorage) URL(ctx context.Context, filename string) string {
 	return adp.dsn.URL(filename)
 }
 
