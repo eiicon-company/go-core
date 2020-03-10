@@ -27,15 +27,17 @@ type (
 )
 
 func newStorage(env util.Environment) Storage {
-	fURI := env.EnvString("FURI")
+	return SelectStorage(env.EnvString("FURI"))
+}
 
+// SelectStorage can choose storage connection
+func SelectStorage(fURI string) Storage {
 	fu, _ := url.Parse(fURI)
 	switch fu.Scheme {
-	default:
+	default: // file://<bucket_name>/<file_path_inside_bucket>.
 		file, err := dsn.File(fURI)
 		if err != nil {
-			msg := "failed to parse file uri <%s>: %s"
-			logger.Panicf(msg, fURI, err)
+			logger.Panicf("failed to parse file uri <%s>: %s", fURI, err)
 		}
 
 		msg := "A storage folder is chosen filesystems to <%s> Public URL: <%s>"
@@ -43,11 +45,10 @@ func newStorage(env util.Environment) Storage {
 
 		return &fileStorage{dsn: file}
 
-	case "s3":
+	case "s3": // s3://<bucket_name>/<file_path_inside_bucket>.
 		s3, err := dsn.S3(fURI)
 		if err != nil {
-			msg := "failed to parse s3 uri <%s>: %s"
-			logger.Panicf(msg, fURI, err)
+			logger.Panicf("failed to parse s3 uri <%s>: %s", fURI, err)
 		}
 
 		msg := "a storage folder is chosen s3 by <%s> Public URL: <%s>"
@@ -58,8 +59,7 @@ func newStorage(env util.Environment) Storage {
 	case "gs": // gs://<bucket_name>/<file_path_inside_bucket>.
 		gcs, err := dsn.GCS(fURI)
 		if err != nil {
-			msg := "failed to parse gcs uri <%s>: %s"
-			logger.Panicf(msg, fURI, err)
+			logger.Panicf("failed to parse gcs uri <%s>: %s", fURI, err)
 		}
 
 		msg := "a storage folder is chosen gcs by <%s> Public URL: <%s>"
