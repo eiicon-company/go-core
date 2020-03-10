@@ -104,9 +104,14 @@ func (adp *fileStorage) Files(ctx context.Context, ptn string) ([]string, error)
 	return files, nil
 }
 
-// URL returns Public URL
+// URL returns a Public URL
 func (adp *fileStorage) URL(ctx context.Context, filename string) string {
 	return adp.dsn.URL(filename)
+}
+
+// String returns a URI
+func (adp *fileStorage) String(ctx context.Context, filename string) string {
+	return adp.dsn.String(filename)
 }
 
 // gzip will create sitemap file as a gzip.

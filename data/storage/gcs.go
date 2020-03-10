@@ -173,3 +173,8 @@ func (adp *gcsStorage) Files(ctx context.Context, ptn string) ([]string, error) 
 func (adp *gcsStorage) URL(ctx context.Context, filename string) string {
 	return adp.dsn.URL(filename)
 }
+
+// String returns a URI
+func (adp *gcsStorage) String(ctx context.Context, filename string) string {
+	return adp.dsn.String(filename)
+}

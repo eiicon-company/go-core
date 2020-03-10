@@ -147,3 +147,8 @@ func (adp *s3Storage) Files(ctx context.Context, ptn string) ([]string, error) {
 func (adp *s3Storage) URL(ctx context.Context, filename string) string {
 	return adp.dsn.URL(filename)
 }
+
+// String returns a URI
+func (adp *s3Storage) String(ctx context.Context, filename string) string {
+	return adp.dsn.String(filename)
+}

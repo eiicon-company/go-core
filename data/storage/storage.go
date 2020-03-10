@@ -23,6 +23,7 @@ type (
 		Merge(ctx context.Context, filename string, data []byte) error
 		Files(ctx context.Context, ptn string) ([]string, error)
 		URL(ctx context.Context, filename string) string
+		String(ctx context.Context, filename string) string
 	}
 )
 
