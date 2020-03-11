@@ -17,9 +17,6 @@ type (
 	}
 )
 
-// filePublicURL Http URL
-var filePublicURL = "http://localhost:8000"
-
 // Join returns ...
 func (dsn *FileDSN) Join(filename string) string {
 	return filepath.Join(dsn.Folder, filename)

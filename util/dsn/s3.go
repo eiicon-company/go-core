@@ -17,7 +17,8 @@ import (
 )
 
 type (
-	// S3DSN s3://data_bucket/path/data.flac
+	// S3DSN s3://data-bucket/path/
+	// 			 s3://data-bucket/path/?url=https://exampl.ecom:80
 	S3DSN struct {
 		Sess   *session.Session
 		Bucket string
@@ -40,15 +41,12 @@ func (dsn *S3DSN) String(filename string) string {
 
 // URL returns https URL
 //
-// TODO: No auth or authed or private or public URL
-//
-// 	https://$bucket.s3.ap-southeast-2.amazonaws.com/private/$federated-identityLogo.jpg?AWSAccessKeyId=$KEY&Signature=$KEY&x-amz-security-token=$TOKEN
-// 	return fmt.Sprintf("https://%s%s", dsn.Bucket, aws.StringValue(dsn.Sess.Config.Region), dsn.Join(filename))
+// TODO: Get no auth or authed or private or public URL
 //
 func (dsn *S3DSN) URL(filename string) string {
 	if dsn.PublicURL != nil {
-		u, _ := url.Parse(filePublicURL)
-		u.Path = path.Join(u.Path, filename)
+		u, _ := url.Parse(dsn.PublicURL.String())
+		u.Path = path.Join(filepath.Dir(u.Path), filename)
 		return u.String()
 	}
 
@@ -59,12 +57,16 @@ func (dsn *S3DSN) URL(filename string) string {
 		Key:    aws.String(dsn.Key),
 	})
 
-	uri, err := req.Presign(24 * 5 * time.Hour) // TODO: No auth: Public or Private URL
+	uri, err := req.Presign(24 * 5 * time.Hour) // TODO: Auth URL: Public or Private URL
 	if err != nil {
 		return ""
 	}
 
-	return uri
+	u, _ := url.Parse(uri) // TODO: Auth URL: Public or Private URL
+	u.Path = path.Join(filepath.Dir(u.Path), filename)
+	u.RawQuery = ""
+	u.Fragment = ""
+	return u.String()
 }
 
 // S3 ...
