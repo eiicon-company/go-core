@@ -44,7 +44,7 @@ func newMail(env util.Environment) Mail {
 	}
 
 	msg := "[INFO] A E-Mailer is chosen SMTP by <%s>"
-	logger.Printf(msg, mailURI)
+	logger.Printf(msg, mdsn.Addr)
 
 	return &smtpMail{dsn: mdsn}
 }
