@@ -43,7 +43,7 @@ func newMail(env util.Environment) Mail {
 
 	}
 
-	msg := "[INFO] A E-Mailer is chosen SMTP by <%s>"
+	msg := "[INFO] A E-Mailer is chosen SMTP Server by <%s>"
 	logger.Printf(msg, mdsn.Addr)
 
 	return &smtpMail{dsn: mdsn}
