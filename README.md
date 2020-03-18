@@ -1,24 +1,5 @@
 # go-core
 
-
->
-> A go@1.12.9
->
-
-This system force required to: You **have to must** have `GO111MODULE` environment variable that activates `go mod` module.
-
-Therefore, it set into.
-
-```php
-$ export GO111MODULE=on
-```
-
-or use direnv.
-
-```php
-$ brew install direnv
-```
-
 ## Installation
 
 Download Project
