@@ -58,9 +58,10 @@ func SelectDBConn(dsn string) (*sql.DB, error) {
 // ESConn returns established connection
 func ESConn(env Environment) (*elastic.Client, error) {
 	var op []elastic.ClientOptionFunc
-	op = append(op, elastic.SetHttpClient(&http.Client{Timeout: 5 * time.Second}))
+	op = append(op, elastic.SetHttpClient(&http.Client{Timeout: 30 * time.Second}))
 	op = append(op, elastic.SetURL(env.EnvString("ESURL")))
-	op = append(op, elastic.SetSniff(false))
+	op = append(op, elastic.SetSniff(true))
+	op = append(op, elastic.SetMaxRetries(5))
 	op = append(op, elastic.SetErrorLog(log.New(os.Stderr, "[ELASTIC] ", log.LstdFlags)))
 
 	if env.IsDebug() {
