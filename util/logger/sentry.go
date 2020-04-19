@@ -117,7 +117,7 @@ func tododeps(deps int, format string, args ...interface{}) {
 	if isSentry {
 		_, fn, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[TODO] %s:%d: %s", fn, line, s)
-		raven.CaptureMessageAndWait(s, nil, raven.NewException(&TODO{s}, trace(deps)))
+		raven.CaptureMessage(s, nil, raven.NewException(&TODO{s}, trace(deps)))
 	}
 }
 
@@ -134,7 +134,7 @@ func debugdeps(deps int, format string, args ...interface{}) {
 		if isSentry {
 			_, fn, line, _ := runtime.Caller(deps - 1)
 			s = fmt.Sprintf("[DEBUG] %s:%d: %s", fn, line, s)
-			raven.CaptureMessageAndWait(s, nil, raven.NewException(&DEBUG{s}, trace(deps)))
+			raven.CaptureMessage(s, nil, raven.NewException(&DEBUG{s}, trace(deps)))
 		}
 	}
 }
@@ -156,7 +156,7 @@ func infodeps(deps int, format string, args ...interface{}) {
 	if without && isSentry {
 		_, fn, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[INFO] %s:%d: %s", fn, line, s)
-		raven.CaptureMessageAndWait(s, nil, raven.NewException(&INFO{s}, trace(deps)))
+		raven.CaptureMessage(s, nil, raven.NewException(&INFO{s}, trace(deps)))
 	}
 }
 
@@ -182,7 +182,7 @@ func warndeps(deps int, format string, args ...interface{}) {
 	if without && isSentry {
 		_, fn, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[WARN] %s:%d: %s", fn, line, s)
-		raven.CaptureMessageAndWait(s, nil, raven.NewException(&WARN{s}, trace(deps)))
+		raven.CaptureMessage(s, nil, raven.NewException(&WARN{s}, trace(deps)))
 	}
 }
 
@@ -213,7 +213,7 @@ func errdeps(deps int, format string, args ...interface{}) {
 	if isSentry {
 		_, fn, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[ERROR] %s:%d: %s", fn, line, s)
-		raven.CaptureMessageAndWait(s, nil, raven.NewException(&ERROR{s}, trace(deps)))
+		raven.CaptureMessage(s, nil, raven.NewException(&ERROR{s}, trace(deps)))
 	}
 }
 
@@ -239,7 +239,7 @@ func creticaldeps(deps int, format string, args ...interface{}) {
 	if isSentry {
 		_, fn, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[CRETICAL] %s:%d: %s", fn, line, s)
-		raven.CaptureMessageAndWait(s, nil, raven.NewException(&CRETICAL{s}, trace(deps)))
+		raven.CaptureMessage(s, nil, raven.NewException(&CRETICAL{s}, trace(deps)))
 	}
 }
 
@@ -260,7 +260,7 @@ func panicdeps(deps int, format string, args ...interface{}) {
 	if isSentry {
 		_, fn, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[PANIC] %s:%d: %s", fn, line, s)
-		raven.CaptureMessageAndWait(s, nil, raven.NewException(&PANIC{s}, trace(deps)))
+		raven.CaptureMessage(s, nil, raven.NewException(&PANIC{s}, trace(deps)))
 	}
 
 	panic(s)
@@ -297,4 +297,9 @@ func printdeps(deps int, args ...interface{}) {
 	default:
 		_ = noLogger.Output(deps, s)
 	}
+}
+
+// Flush waits blocks and waits for all events to finish being sent to Sentry server
+func Flush() {
+	raven.Wait()
 }
