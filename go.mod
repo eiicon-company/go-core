@@ -16,6 +16,7 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
+	github.com/golangci/golangci-lint v1.25.1 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/imdario/mergo v0.3.8
 	github.com/jordan-wright/email v0.0.0-20200121133829-a0b5c5b58bb6
@@ -31,10 +32,9 @@ require (
 	github.com/volatiletech/sqlboiler v3.6.1+incompatible
 	go.uber.org/dig v1.8.0
 	golang.org/x/exp v0.0.0-20200224162631-6cc2880d07d6 // indirect
-	golang.org/x/net v0.0.0-20200222125558-5a598a2470a0 // indirect
+	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae // indirect
-	golang.org/x/tools v0.0.0-20200225022059-a0ec867d517c // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
 	google.golang.org/api v0.18.0
 	google.golang.org/genproto v0.0.0-20200224152610-e50cd9704f63 // indirect

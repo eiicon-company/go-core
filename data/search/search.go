@@ -58,7 +58,7 @@ func (cr *Result) JSON() []byte {
 	return bytes
 }
 
-// Values returns significant values which was choosen along with any es result
+// Values returns significant values which was chosen along with any es result
 func (cr *Result) Values() interface{} {
 	switch value := cr.Res.(type) {
 	default:
@@ -117,7 +117,7 @@ func (c *command) PostDocument(ctx context.Context, name string, id int, doc str
 	fn := func(rch chan *Result) {
 		res, err := c.ESClient.Index().
 			Pretty(c.Env.IsDebug()).
-			Index(name).Type("_doc").Id(strconv.Itoa(id)).BodyString(doc).Do(ctx)
+			Index(name).Id(strconv.Itoa(id)).BodyString(doc).Do(ctx)
 		rch <- &Result{Res: res, Err: err}
 	}
 
@@ -129,7 +129,7 @@ func (c *command) UpdateByScript(ctx context.Context, name string, id int, scrip
 		script := elastic.NewScript(script).Params(params).Lang("painless")
 
 		res, err := c.ESClient.Update().
-			Pretty(c.Env.IsDebug()).Index(name).Type("_doc").Id(strconv.Itoa(id)).
+			Pretty(c.Env.IsDebug()).Index(name).Id(strconv.Itoa(id)).
 			Script(script).Do(ctx)
 		rch <- &Result{Res: res, Err: err}
 	}
@@ -142,7 +142,7 @@ func (c *command) UpsertByScript(ctx context.Context, name string, id int, scrip
 		script := elastic.NewScript(script).Params(params).Lang("painless")
 
 		res, err := c.ESClient.Update().
-			Pretty(c.Env.IsDebug()).Index(name).Type("_doc").Id(strconv.Itoa(id)).
+			Pretty(c.Env.IsDebug()).Index(name).Id(strconv.Itoa(id)).
 			Script(script).ScriptedUpsert(true).Upsert(upsert).Do(ctx)
 		rch <- &Result{Res: res, Err: err}
 	}
@@ -154,7 +154,7 @@ func (c *command) DeleteDocument(ctx context.Context, name string, id int) (*Res
 	fn := func(rch chan *Result) {
 		res, err := c.ESClient.Delete().
 			Pretty(c.Env.IsDebug()).
-			Index(name).Type("_doc").Id(strconv.Itoa(id)).Do(ctx)
+			Index(name).Id(strconv.Itoa(id)).Do(ctx)
 		rch <- &Result{Res: res, Err: err}
 	}
 
