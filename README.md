@@ -18,7 +18,7 @@ Make sure what tasks are existing.
 $ make help
 ```
 
-Update Golang dependencies. This command would be help you when something went wrong happended.
+Update Golang dependencies. This command would be help you when something went wrong happened.
 
 ```php
 $ make gomodule

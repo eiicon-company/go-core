@@ -19,6 +19,9 @@ func Redis(uri string) (*RedisDSN, error) {
 	if err != nil {
 		return nil, err
 	}
+	if u.Scheme != "redis" {
+		return nil, ef("invalid redis scheme: %s", u.Scheme)
+	}
 	if !u.IsAbs() {
 		return nil, ef("invalid redis hasn't scheme")
 	}
