@@ -9,8 +9,6 @@ import (
 
 	"golang.org/x/xerrors"
 
-	_ "github.com/go-sql-driver/mysql" // for testing
-
 	"github.com/volatiletech/sqlboiler/drivers/sqlboiler-mysql/driver"
 )
 
