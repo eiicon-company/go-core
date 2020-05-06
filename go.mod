@@ -16,7 +16,7 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
-	github.com/golangci/golangci-lint v1.25.1 // indirect
+	github.com/golangci/golangci-lint v1.26.0 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/imdario/mergo v0.3.8
 	github.com/jordan-wright/email v0.0.0-20200121133829-a0b5c5b58bb6
