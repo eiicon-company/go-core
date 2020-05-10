@@ -12,27 +12,18 @@ import (
 )
 
 var (
-	// ErrGRPCUnauthenticated a user need to login
-	ErrGRPCUnauthenticated = status.Error(codes.Unauthenticated, "you need logged in")
-
-	// ErrGRPCInvalidArgument invalid request
-	ErrGRPCInvalidArgument = status.Error(codes.InvalidArgument, "invalid argument")
-
 	// ErrGRPCInternal server error
-	ErrGRPCInternal = status.Error(codes.Internal, "something went wrong")
+	ErrGRPCInternal = status.Error(codes.Internal, "Something went wrong")
+	// ErrGRPCUnauthenticated a user need to login
+	ErrGRPCUnauthenticated = status.Error(codes.Unauthenticated, "You need logged in")
+	// ErrGRPCInvalidArgument invalid request
+	ErrGRPCInvalidArgument = status.Error(codes.InvalidArgument, "Invalid Argument")
 )
 
 // GRPCError returns grpc status error
 func GRPCError(err error) error {
 	if err == nil {
 		return nil
-	}
-
-	// GRPC Status Code
-	if _, ok := err.(interface {
-		GRPCStatus() *status.Status
-	}); ok {
-		return err
 	}
 
 	// Others
@@ -43,14 +34,32 @@ func GRPCError(err error) error {
 	if xerrors.Is(err, repo.ErrExists) {
 		return status.Error(codes.AlreadyExists, err.Error())
 	}
-	if xerrors.Is(err, ErrHTTPUnauthorized) {
+	if xerrors.Is(err, ErrHTTP403) {
+		return status.Error(codes.PermissionDenied, err.Error())
+	}
+	if xerrors.Is(err, ErrHTTP401) {
 		return status.Error(codes.Unauthenticated, err.Error())
 	}
-	if xerrors.Is(err, ErrHTTPBadRequest) {
+	if xerrors.Is(err, ErrHTTP400) {
 		return status.Error(codes.InvalidArgument, err.Error())
 	}
-	if xerrors.Is(err, ErrHTTPForbidden) {
-		return status.Error(codes.PermissionDenied, err.Error())
+
+	// With GRPC Status Code
+
+	if _, ok := err.(interface {
+		GRPCStatus() *status.Status
+	}); ok {
+		return err
+	}
+
+	if xerrors.Is(err, ErrGRPCInternal) {
+		return status.Error(codes.Internal, err.Error())
+	}
+	if xerrors.Is(err, ErrGRPCUnauthenticated) {
+		return status.Error(codes.Unauthenticated, err.Error())
+	}
+	if xerrors.Is(err, ErrGRPCInvalidArgument) {
+		return status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	return status.Error(codes.Unknown, err.Error())

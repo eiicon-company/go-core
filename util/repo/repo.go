@@ -10,9 +10,9 @@ const (
 	// DBFormat translates as common database datetime format
 	DBFormat = "2006-01-02 15:04:05"
 	maxUint  = ^uint(0)
-	minUint  = 0
 	maxInt   = int(maxUint >> 1)
-	minInt   = -maxInt - 1
+	// minUint  = 0
+	// minInt   = -maxInt - 1
 )
 
 var (
