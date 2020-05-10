@@ -34,6 +34,18 @@ func GRPCError(err error) error {
 	if xerrors.Is(err, repo.ErrExists) {
 		return status.Error(codes.AlreadyExists, err.Error())
 	}
+	if xerrors.Is(err, ErrHTTP503) {
+		return status.Error(codes.Unavailable, err.Error())
+	}
+	if xerrors.Is(err, ErrHTTP502) {
+		return status.Error(codes.Unavailable, err.Error())
+	}
+	if xerrors.Is(err, ErrHTTP500) {
+		return status.Error(codes.Internal, err.Error())
+	}
+	// if xerrors.Is(err, ErrHTTP405) {
+	// 	return status.Error(codes.InvalidArgument, err.Error())
+	// }
 	if xerrors.Is(err, ErrHTTP403) {
 		return status.Error(codes.PermissionDenied, err.Error())
 	}

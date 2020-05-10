@@ -7,6 +7,7 @@ import (
 )
 
 // HTTP2GRPC returns gRPC Status Code
+//
 func HTTP2GRPC(httpStatus int) codes.Code {
 	switch httpStatus {
 	case http.StatusOK:
@@ -31,6 +32,8 @@ func HTTP2GRPC(httpStatus int) codes.Code {
 		return codes.Internal
 	case http.StatusNotImplemented:
 		return codes.Unimplemented
+	case http.StatusBadGateway:
+		return codes.Unavailable
 	case http.StatusServiceUnavailable:
 		return codes.Unavailable
 	case http.StatusGatewayTimeout:

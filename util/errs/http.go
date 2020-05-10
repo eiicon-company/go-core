@@ -7,6 +7,8 @@ import (
 )
 
 var (
+	// ErrHTTP503 uses as 503 ServiceUnavailable
+	ErrHTTP503 = xerrors.New(http.StatusText(http.StatusServiceUnavailable))
 	// ErrHTTP502 uses as 502 BadGateway
 	ErrHTTP502 = xerrors.New(http.StatusText(http.StatusBadGateway))
 	// ErrHTTP500 uses as 500 InternalServerError which a msg was changed from 'Internal Server Error'
