@@ -8,6 +8,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/hashicorp/go-multierror"
+
 	"github.com/eiicon-company/go-core/util/repo"
 )
 
@@ -19,6 +21,36 @@ var (
 	// ErrGRPCInvalidArgument invalid request
 	ErrGRPCInvalidArgument = status.Error(codes.InvalidArgument, "Invalid Argument")
 )
+
+// IsGRPCError returns determined value as boolean which a error has *status.Status
+func IsGRPCError(err error) bool {
+	if _, ok := status.FromError(err); ok {
+		return true
+	}
+
+	if me, ok := err.(*multierror.Error); ok {
+		for _, e := range me.Errors {
+			return IsGRPCError(e)
+		}
+	}
+
+	return false
+}
+
+// multi2grpc returns determined value as *status.Status which a error has *status.Status
+func multi2grpc(err error) (*status.Status, bool) {
+	if s, ok := status.FromError(err); ok {
+		return s, true
+	}
+
+	if me, ok := err.(*multierror.Error); ok {
+		for _, e := range me.Errors {
+			return multi2grpc(e)
+		}
+	}
+
+	return nil, false
+}
 
 // GRPCError returns grpc status error
 func GRPCError(err error) error {
@@ -72,6 +104,10 @@ func GRPCError(err error) error {
 	}
 	if xerrors.Is(err, ErrGRPCInvalidArgument) {
 		return status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if s, ok := multi2grpc(err); ok {
+		return status.Error(s.Code(), err.Error())
 	}
 
 	return status.Error(codes.Unknown, err.Error())
