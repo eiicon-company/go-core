@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"golang.org/x/xerrors"
@@ -114,7 +113,19 @@ func S3(uri string) (*S3DSN, error) {
 	return dsn, nil
 }
 
+// 1. env var first
+// 2. AssumeRole
+// 3. ec2
+// 4. ~/.aws folder
 func awsSession() (*session.Session, error) {
+	creds := credentials.NewEnvCredentials()
+	if _, err := creds.Get(); err == nil {
+		return awsSessionChecker(session.NewSessionWithOptions(session.Options{
+			Config:            aws.Config{Credentials: creds},
+			SharedConfigState: session.SharedConfigDisable,
+		}))
+	}
+
 	sess, err := session.NewSessionWithOptions(session.Options{
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 		SharedConfigState:       session.SharedConfigEnable,
@@ -123,35 +134,16 @@ func awsSession() (*session.Session, error) {
 		return sess, nil
 	}
 
-	sess, err = session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	})
-	if _, err := awsSessionChecker(sess, err); err == nil {
-		return sess, nil
-	}
-
-	meta, err := session.NewSession()
-	if err != nil {
-		msg := "aws session failed creation: %w"
-		return nil, xerrors.Errorf(msg, err)
-	}
-
-	creds := credentials.NewChainCredentials(
-		[]credentials.Provider{
-			&credentials.EnvProvider{},
-			&ec2rolecreds.EC2RoleProvider{
-				Client: ec2metadata.New(meta),
-			},
-		})
-
-	if _, err := creds.Get(); err != nil {
-		msg := "invalid aws environment variables: %w"
-		return nil, xerrors.Errorf(msg, err)
+	creds = ec2rolecreds.NewCredentials(sess)
+	if _, err := creds.Get(); err == nil {
+		return awsSessionChecker(session.NewSessionWithOptions(session.Options{
+			Config:            aws.Config{Credentials: creds},
+			SharedConfigState: session.SharedConfigDisable,
+		}))
 	}
 
 	return awsSessionChecker(session.NewSessionWithOptions(session.Options{
-		Config:            aws.Config{Credentials: creds},
-		SharedConfigState: session.SharedConfigDisable,
+		SharedConfigState: session.SharedConfigEnable,
 	}))
 }
 
