@@ -128,21 +128,30 @@ func awsSession() (*session.Session, error) {
 			},
 		})
 
-	if _, err := creds.Get(); err != nil {
-		msg := "invalid aws environment variables: %w"
-		return nil, xerrors.Errorf(msg, err)
+	var sess *session.Session
+
+	_, err = creds.Get()
+
+	if err == nil {
+		sess, err = session.NewSessionWithOptions(session.Options{
+			Config:            aws.Config{Credentials: creds},
+			SharedConfigState: session.SharedConfigDisable,
+		})
+	} else {
+		sess, err = session.NewSessionWithOptions(session.Options{
+			SharedConfigState: session.SharedConfigEnable,
+		})
 	}
 
-	sess, err := session.NewSessionWithOptions(session.Options{
-		Config:            aws.Config{Credentials: creds},
-		SharedConfigState: session.SharedConfigDisable,
-	})
 	if err != nil {
 		msg := "invalid aws environment variables: %w"
 		return nil, xerrors.Errorf(msg, err)
 	}
 	if aws.StringValue(sess.Config.Region) == "" {
 		return nil, ef("invalid aws region is blank")
+	}
+	if sess.Config.Credentials == nil {
+		return nil, ef("invalid aws credentials is blank")
 	}
 
 	return sess, nil
