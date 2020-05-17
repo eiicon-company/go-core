@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -114,6 +115,21 @@ func S3(uri string) (*S3DSN, error) {
 }
 
 func awsSession() (*session.Session, error) {
+	sess, err := session.NewSessionWithOptions(session.Options{
+		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+		SharedConfigState:       session.SharedConfigEnable,
+	})
+	if _, err := awsSessionChecker(sess, err); err == nil {
+		return sess, nil
+	}
+
+	sess, err = session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	})
+	if _, err := awsSessionChecker(sess, err); err == nil {
+		return sess, nil
+	}
+
 	meta, err := session.NewSession()
 	if err != nil {
 		msg := "aws session failed creation: %w"
@@ -128,21 +144,18 @@ func awsSession() (*session.Session, error) {
 			},
 		})
 
-	var sess *session.Session
-
-	_, err = creds.Get()
-
-	if err == nil {
-		sess, err = session.NewSessionWithOptions(session.Options{
-			Config:            aws.Config{Credentials: creds},
-			SharedConfigState: session.SharedConfigDisable,
-		})
-	} else {
-		sess, err = session.NewSessionWithOptions(session.Options{
-			SharedConfigState: session.SharedConfigEnable,
-		})
+	if _, err := creds.Get(); err != nil {
+		msg := "invalid aws environment variables: %w"
+		return nil, xerrors.Errorf(msg, err)
 	}
 
+	return awsSessionChecker(session.NewSessionWithOptions(session.Options{
+		Config:            aws.Config{Credentials: creds},
+		SharedConfigState: session.SharedConfigDisable,
+	}))
+}
+
+func awsSessionChecker(sess *session.Session, err error) (*session.Session, error) {
 	if err != nil {
 		msg := "invalid aws environment variables: %w"
 		return nil, xerrors.Errorf(msg, err)
