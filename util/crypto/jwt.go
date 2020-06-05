@@ -13,6 +13,8 @@ var (
 	jwtSecret = "zbaexfGRP12;pike" // #nosec
 	// jwtExpires is used as session key
 	jwtExpires = time.Hour * 24 * 90 // 3 months
+	// Domain is used s cookie domain
+	Domain = "localhost"
 	// SessionKey is used as session key
 	SessionKey = "_go_core_key"
 	// MaxAge is session max age
@@ -27,6 +29,11 @@ func SetExpires(expires time.Duration) {
 // SetSecret set value
 func SetSecret(secret string) {
 	jwtSecret = secret
+}
+
+// SetDomain set value
+func SetDomain(key string) {
+	Domain = key
 }
 
 // SetSessionKey set value
