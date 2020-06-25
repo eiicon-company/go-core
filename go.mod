@@ -12,10 +12,11 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/friendsofgo/errors v0.9.2 // indirect
 	github.com/getsentry/raven-go v0.2.0
-	github.com/go-redsync/redsync v1.3.1
+	github.com/go-redsync/redsync v1.4.1
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
+	github.com/golangci/golangci-lint v1.27.0 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/imdario/mergo v0.3.8
