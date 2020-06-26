@@ -1,3 +1,4 @@
+// Package storage will be used here https://github.com/google/go-cloud someday
 package storage
 
 import (
