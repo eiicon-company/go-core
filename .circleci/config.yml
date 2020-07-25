@@ -8,6 +8,42 @@ references:
     working_directory: ~/go-core
 
   commands:
+    install_dependencies: &install_dependencies
+      name: Install Dependencies
+      command: |
+        sudo apt-get update && \
+        sudo apt-get upgrade -y && \
+        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
+            autoconf \
+            automake \
+            ca-certificates \
+            curl \
+            gifsicle \
+            htop \
+            libtool \
+            libvips-dev \
+            make \
+            nasm \
+            net-tools \
+            openssl \
+            pkg-config \
+            pngquant \
+            telnet \
+            unzip \
+            vim \
+            wget \
+        && \
+          sudo update-ca-certificates \
+        && \
+          cd /tmp && \
+          wget https://github.com/mozilla/mozjpeg/archive/v3.3.1.tar.gz && \
+          tar -zxvf v3.3.1.tar.gz && \
+          cd mozjpeg-3.3.1 && \
+          autoreconf -fiv && \
+          mkdir build && cd build && \
+          sh ../configure && \
+          sudo make install && \
+          sudo ln -s /opt/mozjpeg/bin/* /usr/local/bin/
 
     setup_environment_variable: &setup_environment_variable
       name: Environment settings
@@ -32,7 +68,6 @@ references:
           echo 'export AWS_REGION=ap-northeast-2'                                           >> $BASH_ENV
         fi
 
-
 jobs:
   # Golang CircleCI 2.0 configuration file
   #
@@ -44,6 +79,7 @@ jobs:
     steps:
       - checkout
 
+      - run: *install_dependencies
       - run: *setup_environment_variable
 
       - restore_cache:
