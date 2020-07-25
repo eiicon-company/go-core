@@ -22,6 +22,7 @@ require (
 	github.com/golangci/golangci-lint v1.29.0 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/h2non/bimg v1.1.2
+	github.com/h2non/filetype v1.1.0
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/imdario/mergo v0.3.8
 	github.com/jordan-wright/email v0.0.0-20200121133829-a0b5c5b58bb6

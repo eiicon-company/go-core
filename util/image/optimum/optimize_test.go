@@ -1,4 +1,4 @@
-package thumb
+package optimum
 
 import (
 	"io/ioutil"

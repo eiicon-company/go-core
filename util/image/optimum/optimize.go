@@ -1,4 +1,4 @@
-package thumb
+package optimum
 
 import (
 	"bytes"
@@ -6,17 +6,25 @@ import (
 	"os/exec"
 
 	"github.com/codeskyblue/go-sh"
-	"github.com/h2non/bimg"
+	"github.com/h2non/filetype"
 	"golang.org/x/xerrors"
 )
 
 // Optimize reduce image size
 func Optimize(buf []byte) ([]byte, error) {
-	ext := bimg.DetermineImageTypeName(buf)
-	switch ext {
+	if !filetype.IsImage(buf) {
+		return nil, xerrors.New("file is not an image")
+	}
+
+	kind, err := filetype.Match(buf)
+	if err != nil {
+		return nil, xerrors.Errorf("ext %v is not supported: %+v", kind, err)
+	}
+
+	switch kind.Extension {
 	default:
-		return nil, xerrors.Errorf("ext %s is not supported", ext)
-	case "jpeg":
+		return nil, xerrors.Errorf("ext %s is not supported", kind.Extension)
+	case "jpeg", "jpg":
 		return OptimizeJPG(buf)
 	case "gif":
 		return OptimizeGIF(buf)

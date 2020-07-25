@@ -1,4 +1,4 @@
-package thumb
+package optimum
 
 const (
 	testPNG = "tests/promotion/0c61d8df9cdf627ce733a5b837a47e9ec11c2f14f69e0609c2e782495b138205.png"
