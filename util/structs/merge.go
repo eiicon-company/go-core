@@ -23,9 +23,10 @@ func (t timeTransfomer) Transformer(typ reflect.Type) func(dst, src reflect.Valu
 	if typ == reflect.TypeOf(time.Time{}) {
 		return func(dst, src reflect.Value) error {
 			if dst.CanSet() {
-				isZero := dst.MethodByName("IsZero")
+				// When src value is Zero value, the merging won't be working
+				isZero := src.MethodByName("IsZero")
 				result := isZero.Call([]reflect.Value{})
-				if result[0].Bool() {
+				if !result[0].Bool() {
 					dst.Set(src)
 				}
 			}
