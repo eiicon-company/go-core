@@ -9,10 +9,10 @@ type (
 
 // Printf prints out message as error
 func (a *SentryErrorLogger) Printf(format string, v ...interface{}) {
-	Errorf(format, v...)
+	errdeps(4, format, v...)
 }
 
 // Printf prints out message as info
 func (a *SentryInfoLogger) Printf(format string, v ...interface{}) {
-	Infof(format, v...)
+	infodeps(4, format, v...)
 }
