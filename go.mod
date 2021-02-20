@@ -18,9 +18,9 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
-	github.com/golangci/golangci-lint v1.29.0 // indirect
+	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
-	github.com/google/go-cmp v0.5.0
+	github.com/google/go-cmp v0.5.4
 	github.com/h2non/filetype v1.1.0
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/imdario/mergo v0.3.8
@@ -35,7 +35,7 @@ require (
 	github.com/oleiade/reflections v1.0.0 // indirect
 	github.com/olivere/elastic/v7 v7.0.11
 	github.com/spf13/cast v1.3.1 // indirect
-	github.com/stretchr/testify v1.6.1 // indirect
+	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/volatiletech/inflect v0.0.0-20170731032912-e7201282ae8d // indirect
 	github.com/volatiletech/null v8.0.0+incompatible // indirect
 	github.com/volatiletech/sqlboiler v3.6.1+incompatible
@@ -43,14 +43,17 @@ require (
 	go.uber.org/dig v1.8.0
 	golang.org/x/exp v0.0.0-20200224162631-6cc2880d07d6 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
+	golang.org/x/mod v0.4.0 // indirect
+	golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	golang.org/x/tools v0.0.0-20200710042808-f1c4188a97a1 // indirect
-	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
+	golang.org/x/text v0.3.4 // indirect
+	golang.org/x/tools v0.1.0 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 	google.golang.org/api v0.18.0
 	google.golang.org/genproto v0.0.0-20200224152610-e50cd9704f63 // indirect
 	google.golang.org/grpc v1.27.1
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/oleiade/reflections.v1 v1.0.0
-	gopkg.in/yaml.v2 v2.3.0 // indirect
-	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
+	honnef.co/go/tools v0.0.1-2020.1.6 // indirect
 )
