@@ -91,26 +91,9 @@ func D(format string, args ...interface{}) { debugdeps(3, format, args...) }
 // T is alias with todo
 func T(format string, args ...interface{}) { tododeps(3, format, args...) }
 
-// SetAttachStacktrace set debug flag
-func SetAttachStacktrace(tracable bool) {
-	hub := sentry.CurrentHub()
-
-	op := hub.Client().Options()
-	op.AttachStacktrace = tracable
-
-	sentry.Init(op)
-}
-
 // SetDebug set debug flag
 func SetDebug(debug bool) {
 	isDebug = debug
-
-	hub := sentry.CurrentHub()
-
-	op := hub.Client().Options()
-	op.Debug = debug
-
-	sentry.Init(op)
 }
 
 // SetSentry set
