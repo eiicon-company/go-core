@@ -136,7 +136,7 @@ func debugdeps(deps int, format string, args ...interface{}) {
 		s := fmt.Sprintf(format, args...)
 		_ = debugLogger.Output(deps, s)
 
-		if isSentry {
+		if without && isSentry {
 			_, fn, line, _ := runtime.Caller(deps - 1)
 			s = fmt.Sprintf("[DEBUG] %s:%d: %s", fn, line, s)
 			// sentry.CaptureMessage(s, nil, sentry.NewException(&DEBUG{s}, trace(deps)))
