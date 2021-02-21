@@ -14,6 +14,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/friendsofgo/errors v0.9.2 // indirect
 	github.com/getsentry/raven-go v0.2.0
+	github.com/getsentry/sentry-go v0.10.0
 	github.com/go-redsync/redsync v1.4.1
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gobwas/glob v0.2.3
