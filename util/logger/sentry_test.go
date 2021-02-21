@@ -43,7 +43,7 @@ func TestSentryPanic(t *testing.T) {
 		}
 	}()
 
-	P("nonononon")
+	Panic("nonononon")
 }
 
 func TestSentryCretical(t *testing.T) {
