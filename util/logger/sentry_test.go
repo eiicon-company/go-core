@@ -43,7 +43,7 @@ func TestSentryPanic(t *testing.T) {
 		}
 	}()
 
-	Panic("nonononon")
+	Panicln("nonononon")
 }
 
 func TestSentryCretical(t *testing.T) {
@@ -103,7 +103,7 @@ func TestSentryInfo(t *testing.T) {
 	out := &bytes.Buffer{}
 	setup(out)
 
-	Info("abcdefg")
+	Infoln("abcdefg")
 	if !strings.HasSuffix(out.String(), "abcdefg\n") {
 		t.Errorf("Miss match value: %s", out.String())
 	}

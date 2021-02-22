@@ -15,25 +15,25 @@ type SentryDevNullTransport struct{}
 // Configure ...
 func (t *SentryDevNullTransport) Configure(options sentry.ClientOptions) {
 	dsn, _ := sentry.NewDsn(options.Dsn)
-	fmt.Println("[FAKESENTRY] Stores Endpoint:", dsn.StoreAPIURL())
-	fmt.Println("[FAKESENTRY] Headers:", dsn.RequestHeaders())
+	fmt.Println("[FakeSentry] Stores Endpoint:", dsn.StoreAPIURL())
+	fmt.Println("[FakeSentry] Headers:", dsn.RequestHeaders())
 }
 
 // SendEvent ...
 func (t *SentryDevNullTransport) SendEvent(event *sentry.Event) {
 	b, err := json.Marshal(event)
 	if err != nil {
-		fmt.Printf("[FAKESENTRY] log failed: %+v", err)
+		fmt.Printf("[FakeSentry] log failed: %+v", err)
 		return
 	}
 
 	var out bytes.Buffer
 	if err := json.Indent(&out, b, "", "  "); err != nil {
-		fmt.Printf("[FAKESENTRY] log failed: %+v", err)
+		fmt.Printf("[FakeSentry] log failed: %+v", err)
 		return
 	}
 
-	fmt.Println("[FAKESENTRY] SentEvent", out.String())
+	fmt.Println("[FakeSentry] SentEvent", out.String())
 }
 
 // Flush ...
