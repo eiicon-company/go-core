@@ -18,6 +18,7 @@ require (
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
+	github.com/golangci/golangci-lint v1.37.1 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/google/go-cmp v0.5.4
 	github.com/h2non/filetype v1.1.0

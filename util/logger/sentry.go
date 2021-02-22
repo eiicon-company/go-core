@@ -2,8 +2,6 @@
 package logger
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -28,6 +26,7 @@ var (
 	without        = false
 )
 
+// TODO: tidy up
 // var (
 // 	major = []string{"10", "11", "12", "13", "14", "15", "16", "17"}
 // 	minor = []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"}
@@ -35,6 +34,7 @@ var (
 // )
 
 func init() {
+	// TODO: tidy up
 	// SetAttachStacktrace(true)
 
 	// for _, ma := range major {
@@ -103,6 +103,7 @@ func SetSentry(sentry bool) {
 	isSentry = sentry
 }
 
+// TODO: tidy up
 // func trace(deps int) *sentry.Stacktrace {
 // 	return sentry.NewStacktrace() // TODO: filter deps, 5, vers
 // }
@@ -119,10 +120,9 @@ func tododeps(deps int, format string, args ...interface{}) {
 	if isSentry {
 		_, fn, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[TODO] %s:%d: %s", fn, line, s)
-
-		// scope.SetExtras(map[string]interface{}{"path": path, "cwd": os.Getwd()})
-		// nil, sentry.NewException(&TODO{s}, trace(deps))
-		sentry.WithScope(func(scope *sentry.Scope) { sentry.CaptureMessage(s) })
+		// raven.CaptureMessage(s, nil, raven.NewException(&TODO{s}, trace(deps)))
+		// sentry.WithScope(func(scope *sentry.Scope) { sentry.CaptureMessage(s) })
+		sentry.CaptureMessage(s)
 	}
 }
 
@@ -139,8 +139,10 @@ func debugdeps(deps int, format string, args ...interface{}) {
 		if without && isSentry {
 			_, fn, line, _ := runtime.Caller(deps - 1)
 			s = fmt.Sprintf("[DEBUG] %s:%d: %s", fn, line, s)
-			// sentry.CaptureMessage(s, nil, sentry.NewException(&DEBUG{s}, trace(deps)))
-			sentry.WithScope(func(scope *sentry.Scope) { sentry.CaptureMessage(s) })
+			// TODO: tidy up
+			// raven.CaptureMessage(s, nil, sentry.NewException(&DEBUG{s}, trace(deps)))
+			// sentry.WithScope(func(scope *sentry.Scope) { sentry.CaptureMessage(s) })
+			sentry.CaptureMessage(s)
 		}
 	}
 }
@@ -162,8 +164,10 @@ func infodeps(deps int, format string, args ...interface{}) {
 	if without && isSentry {
 		_, fn, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[INFO] %s:%d: %s", fn, line, s)
-		// sentry.CaptureMessage(s, nil, sentry.NewException(&INFO{s}, trace(deps)))
-		sentry.WithScope(func(scope *sentry.Scope) { sentry.CaptureMessage(s) })
+		// TODO: tidy up
+		// raven.CaptureMessage(s, nil, sentry.NewException(&INFO{s}, trace(deps)))
+		// sentry.WithScope(func(scope *sentry.Scope) { sentry.CaptureMessage(s) })
+		sentry.CaptureMessage(s)
 	}
 }
 
@@ -189,8 +193,10 @@ func warndeps(deps int, format string, args ...interface{}) {
 	if without && isSentry {
 		_, fn, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[WARN] %s:%d: %s", fn, line, s)
-		// sentry.CaptureMessage(s, nil, sentry.NewException(&WARN{s}, trace(deps)))
-		sentry.WithScope(func(scope *sentry.Scope) { sentry.CaptureMessage(s) })
+		// TODO: tidy up
+		// raven.CaptureMessage(s, nil, sentry.NewException(&WARN{s}, trace(deps)))
+		// sentry.WithScope(func(scope *sentry.Scope) { sentry.CaptureMessage(s) })
+		sentry.CaptureMessage(s)
 	}
 }
 
@@ -221,8 +227,10 @@ func errdeps(deps int, format string, args ...interface{}) {
 	if isSentry {
 		_, fn, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[ERROR] %s:%d: %s", fn, line, s)
-		// sentry.CaptureMessage(s, nil, sentry.NewException(&ERROR{s}, trace(deps)))
-		sentry.WithScope(func(scope *sentry.Scope) { sentry.CaptureMessage(s) })
+		// TODO: tidy up
+		// raven.CaptureMessage(s, nil, sentry.NewException(&ERROR{s}, trace(deps)))
+		// sentry.WithScope(func(scope *sentry.Scope) { sentry.CaptureMessage(s) })
+		sentry.CaptureMessage(s)
 	}
 }
 
@@ -248,8 +256,10 @@ func creticaldeps(deps int, format string, args ...interface{}) {
 	if isSentry {
 		_, fn, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[CRETICAL] %s:%d: %s", fn, line, s)
-		// sentry.CaptureMessage(s, nil, sentry.NewException(&CRETICAL{s}, trace(deps)))
-		sentry.WithScope(func(scope *sentry.Scope) { sentry.CaptureMessage(s) })
+		// TODO: tidy up
+		// raven.CaptureMessage(s, nil, sentry.NewException(&CRETICAL{s}, trace(deps)))
+		// sentry.WithScope(func(scope *sentry.Scope) { sentry.CaptureMessage(s) })
+		sentry.CaptureMessage(s)
 	}
 }
 
@@ -270,8 +280,10 @@ func panicdeps(deps int, format string, args ...interface{}) {
 	if isSentry {
 		_, fn, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[PANIC] %s:%d: %s", fn, line, s)
-		// sentry.CaptureMessage(s, nil, sentry.NewException(&PANIC{s}, trace(deps)))
-		sentry.WithScope(func(scope *sentry.Scope) { sentry.CaptureMessage(s) })
+		// TODO: tidy up
+		// raven.CaptureMessage(s, nil, sentry.NewException(&PANIC{s}, trace(deps)))
+		// sentry.WithScope(func(scope *sentry.Scope) { sentry.CaptureMessage(s) })
+		sentry.CaptureMessage(s)
 	}
 
 	panic(s)
@@ -318,84 +330,4 @@ func Flush() {
 // FlushTimeout waits blocks and waits for all events to finish being sent to Sentry server
 func FlushTimeout(timeout time.Duration) {
 	sentry.Flush(timeout)
-}
-
-// SentryDevNullTransport output to like dev null
-type SentryDevNullTransport struct{}
-
-// Configure ...
-func (t *SentryDevNullTransport) Configure(options sentry.ClientOptions) {
-	dsn, _ := sentry.NewDsn(options.Dsn)
-	fmt.Println("[FAKESENTRY] Stores Endpoint:", dsn.StoreAPIURL())
-	fmt.Println("[FAKESENTRY] Headers:", dsn.RequestHeaders())
-}
-
-// SendEvent ...
-func (t *SentryDevNullTransport) SendEvent(event *sentry.Event) {
-	b, err := json.Marshal(event)
-	if err != nil {
-		fmt.Printf("[FAKESENTRY] log failed: %+v", err)
-		return
-	}
-
-	var out bytes.Buffer
-	if err := json.Indent(&out, b, "", "  "); err != nil {
-		fmt.Printf("[FAKESENTRY] log failed: %+v", err)
-		return
-	}
-
-	fmt.Println("[FAKESENTRY] SentEvent", out.String())
-}
-
-// Flush ...
-func (t *SentryDevNullTransport) Flush(timeout time.Duration) bool {
-	return true
-}
-
-// SentryLoggerIntegration filters no need stacktrace frames
-//
-//
-type SentryLoggerIntegration struct{}
-
-// Name ...
-func (it *SentryLoggerIntegration) Name() string {
-	return "SentryLogger"
-}
-
-// SetupOnce ...
-func (it *SentryLoggerIntegration) SetupOnce(client *sentry.Client) {
-	client.AddEventProcessor(it.processor)
-}
-
-func (it *SentryLoggerIntegration) processor(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
-	for _, thread := range event.Threads {
-		if thread.Stacktrace == nil {
-			continue
-		}
-
-		it.filterFrames(thread.Stacktrace)
-	}
-
-	for _, exc := range event.Exception {
-		if exc.Stacktrace == nil {
-			continue
-		}
-
-		it.filterFrames(exc.Stacktrace)
-	}
-
-	return event
-}
-
-func (it *SentryLoggerIntegration) filterFrames(trace *sentry.Stacktrace) {
-	frames := trace.Frames[:0]
-	for _, frame := range trace.Frames {
-		if frame.Module == "github.com/eiicon-company/go-core/util/logger" {
-			continue
-		}
-
-		frames = append(frames, frame)
-	}
-
-	trace.Frames = frames
 }
