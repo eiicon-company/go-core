@@ -210,7 +210,7 @@ func tododeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 
 	if isSentry {
 		_, f, line, _ := runtime.Caller(deps - 1)
-		s = fmt.Sprintf("[TODO] %s:%d: %s", f, line, s)
+		s = fmt.Sprintf("[TODO] %s \non %s:%d", s, f, line)
 		// raven.CaptureMessage(s, nil, raven.NewException(&TODO{s}, trace(deps)))
 		fn(s)
 	}
@@ -255,7 +255,7 @@ func debugdeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 
 		if without && isSentry {
 			_, f, line, _ := runtime.Caller(deps - 1)
-			s = fmt.Sprintf("[DEBUG] %s:%d: %s", f, line, s)
+			s = fmt.Sprintf("[DEBUG] %s \non %s:%d", s, f, line)
 			// TODO: tidy up
 			// raven.CaptureMessage(s, nil, sentry.NewException(&DEBUG{s}, trace(deps)))
 			fn(s)
@@ -301,7 +301,7 @@ func infodeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 
 	if without && isSentry {
 		_, f, line, _ := runtime.Caller(deps - 1)
-		s = fmt.Sprintf("[INFO] %s:%d: %s", f, line, s)
+		s = fmt.Sprintf("[INFO] %s \non %s:%d", s, f, line)
 		// TODO: tidy up
 		// raven.CaptureMessage(s, nil, sentry.NewException(&INFO{s}, trace(deps)))
 		fn(s)
@@ -378,7 +378,7 @@ func warndeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 
 	if without && isSentry {
 		_, f, line, _ := runtime.Caller(deps - 1)
-		s = fmt.Sprintf("[WARN] %s:%d: %s", f, line, s)
+		s = fmt.Sprintf("[WARN] %s \non %s:%d", s, f, line)
 		// TODO: tidy up
 		// raven.CaptureMessage(s, nil, sentry.NewException(&WARN{s}, trace(deps)))
 		fn(s)
@@ -455,7 +455,7 @@ func errdeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 
 	if isSentry {
 		_, f, line, _ := runtime.Caller(deps - 1)
-		s = fmt.Sprintf("[ERROR] %s:%d: %s", f, line, s)
+		s = fmt.Sprintf("[ERROR] %s \non %s:%d", s, f, line)
 		// TODO: tidy up
 		// raven.CaptureMessage(s, nil, sentry.NewException(&ERROR{s}, trace(deps)))
 		fn(s)
@@ -532,7 +532,7 @@ func creticaldeps(fn MessageFunc, deps int, format string, args ...interface{}) 
 
 	if isSentry {
 		_, f, line, _ := runtime.Caller(deps - 1)
-		s = fmt.Sprintf("[CRETICAL] %s:%d: %s", f, line, s)
+		s = fmt.Sprintf("[CRETICAL] %s \non %s:%d", s, f, line)
 		// TODO: tidy up
 		// raven.CaptureMessage(s, nil, sentry.NewException(&CRETICAL{s}, trace(deps)))
 		fn(s)
@@ -577,7 +577,7 @@ func panicdeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 
 	if isSentry {
 		_, f, line, _ := runtime.Caller(deps - 1)
-		s = fmt.Sprintf("[PANIC] %s:%d: %s", f, line, s)
+		s = fmt.Sprintf("[PANIC] %s \non %s:%d", s, f, line)
 		// TODO: tidy up
 		// raven.CaptureMessage(s, nil, sentry.NewException(&PANIC{s}, trace(deps)))
 		fn(s)
