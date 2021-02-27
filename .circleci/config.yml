@@ -2,7 +2,7 @@ version: 2.1
 
 references:
   go_image: &go_image
-    - image: circleci/golang:1.14
+    - image: circleci/golang:1.15
 
   default: &default
     working_directory: ~/go-core
