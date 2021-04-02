@@ -1,6 +1,6 @@
 module github.com/eiicon-company/go-core
 
-go 1.15
+go 1.16
 
 require (
 	cloud.google.com/go v0.53.0 // indirect
