@@ -20,7 +20,7 @@ gomodule-upgrade-patch:  ## Upgrade to use the latest patch releases (and add -t
 
 
 test:  ## Test to all of directories
-	AWS_REGION=ap-northeast-1 AWS_ACCESS_KEY_ID=1 AWS_SECRET_ACCESS_KEY=2 go test -cover -race ./...
+	AWS_REGION=ap-northeast-1 AWS_ACCESS_KEY_ID=1 AWS_SECRET_ACCESS_KEY=2 go test -mod=mod -cover -race ./...
 
 
 # https://github.com/golangci/golangci-lint
