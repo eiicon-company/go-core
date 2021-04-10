@@ -9,8 +9,10 @@ import (
 )
 
 var (
-	// jwtSecret
-	jwtSecret = "zbaexfGRP12;pike" // #nosec
+	// ensure to be changed
+	jwtSecretDefault = "****************"
+	// jwtSecret must be changed
+	jwtSecret = jwtSecretDefault // nolint:gosec // must be changed
 	// jwtExpires is used as session key
 	jwtExpires = time.Hour * 24 * 90 // 3 months
 	// Domain is used s cookie domain
@@ -48,6 +50,10 @@ func SetMaxAge(age time.Duration) {
 
 // JwtToken returns jwt token with expires
 func JwtToken(data interface{}) (string, error) {
+	if jwtSecret == jwtSecretDefault {
+		return "", xerrors.New("must be changed default secret")
+	}
+
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"data": data,
 		"exp":  time.Now().Add(jwtExpires).Unix(),
@@ -59,6 +65,10 @@ func JwtToken(data interface{}) (string, error) {
 
 // JwtParse returns parsed token as map
 func JwtParse(encrypted string) (interface{}, error) {
+	if jwtSecret == jwtSecretDefault {
+		return nil, xerrors.New("must be changed default secret")
+	}
+
 	token, err := jwt.Parse(encrypted, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
