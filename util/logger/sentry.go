@@ -1,4 +1,4 @@
-// Package logger is simply logger with  sentry
+// Package logger is simply logger with sentry
 package logger
 
 import (
