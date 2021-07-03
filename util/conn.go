@@ -38,11 +38,13 @@ func SelectDBConn(dsn string) (*sql.DB, error) {
 
 	// db configuration
 	// db.SetConnMaxLifetime(time.Minute * 10) // https://github.blog/2020-05-20-three-bugs-in-the-go-mysql-driver/
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(10)
+	db.SetMaxIdleConns(4)
+	db.SetMaxOpenConns(8)
 
 	// make sure connection available
-	if err := db.Ping(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := db.PingContext(ctx); err != nil {
 		return nil, fmt.Errorf("it was unable to connect the DB: %s", err)
 	}
 
