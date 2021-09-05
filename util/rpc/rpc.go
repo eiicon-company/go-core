@@ -5,4 +5,4 @@ import (
 )
 
 // GeneralTimeout context timeout seconds
-var GeneralTimeout = time.Second * 30
+var GeneralTimeout = time.Second * 20
