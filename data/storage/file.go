@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/eiicon-company/go-core/util"
 	"github.com/eiicon-company/go-core/util/dsn"
@@ -112,6 +113,16 @@ func (adp *fileStorage) URL(ctx context.Context, filename string) string {
 // String returns a URI
 func (adp *fileStorage) String(ctx context.Context, filename string) string {
 	return adp.dsn.String(filename)
+}
+
+// PresignedUploadURL returns a presigned upload URI
+func (adp *fileStorage) PresignedUploadURL(ctx context.Context, filename string, _ time.Duration) (string, error) {
+	return adp.URL(ctx, filename), nil
+}
+
+// PresignedDownloadURL returns a presigned download URI
+func (adp *fileStorage) PresignedDownloadURL(ctx context.Context, filename string, _ time.Duration) (string, error) {
+	return adp.URL(ctx, filename), nil
 }
 
 // gzip will create sitemap file as a gzip.

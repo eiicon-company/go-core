@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
 	"golang.org/x/xerrors"
 
@@ -151,4 +152,22 @@ func (adp *s3Storage) URL(ctx context.Context, filename string) string {
 // String returns a URI
 func (adp *s3Storage) String(ctx context.Context, filename string) string {
 	return adp.dsn.String(filename)
+}
+
+// PresignedUploadURL returns a presigned upload URI
+func (adp *s3Storage) PresignedUploadURL(ctx context.Context, filename string, expire time.Duration) (string, error) {
+	req, _ := s3.New(adp.dsn.Sess).PutObjectRequest(&s3.PutObjectInput{
+		Bucket: aws.String(adp.dsn.Bucket),
+		Key:    aws.String(adp.dsn.Join(filename)),
+	})
+	return req.Presign(expire)
+}
+
+// PresignedDownloadURL returns a presigned download URI
+func (adp *s3Storage) PresignedDownloadURL(ctx context.Context, filename string, expire time.Duration) (string, error) {
+	req, _ := s3.New(adp.dsn.Sess).GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String(adp.dsn.Bucket),
+		Key:    aws.String(adp.dsn.Join(filename)),
+	})
+	return req.Presign(expire)
 }
