@@ -5,6 +5,7 @@ import (
 	"context"
 	"net/url"
 	"regexp"
+	"time"
 
 	"github.com/eiicon-company/go-core/util"
 	"github.com/eiicon-company/go-core/util/dsn"
@@ -25,6 +26,8 @@ type (
 		Files(ctx context.Context, ptn string) ([]string, error)
 		URL(ctx context.Context, filename string) string
 		String(ctx context.Context, filename string) string
+		PresignedUploadURL(ctx context.Context, filename string, expire time.Duration) (string, error)
+		PresignedDownloadURL(ctx context.Context, filename string, expire time.Duration) (string, error)
 	}
 )
 

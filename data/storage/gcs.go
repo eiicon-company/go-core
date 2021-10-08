@@ -178,3 +178,13 @@ func (adp *gcsStorage) URL(ctx context.Context, filename string) string {
 func (adp *gcsStorage) String(ctx context.Context, filename string) string {
 	return adp.dsn.String(filename)
 }
+
+// PresignedUploadURL returns a presigned upload URI
+func (adp *gcsStorage) PresignedUploadURL(_ context.Context, _ string, _ time.Duration) (string, error) {
+	return "", fmt.Errorf("PresignedUploadURL not supported yet")
+}
+
+// PresignedDownloadURL returns a presigned download URI
+func (adp *gcsStorage) PresignedDownloadURL(_ context.Context, _ string, _ time.Duration) (string, error) {
+	return "", fmt.Errorf("PresignedDownloadURL not supported yet")
+}
