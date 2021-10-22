@@ -41,18 +41,17 @@ func ToFloat(unk interface{}) (float64, error) {
 	case string:
 		return strconv.ParseFloat(i, 64)
 	default:
-		v := reflect.ValueOf(unk)
-		v = reflect.Indirect(v)
+		v := reflect.Indirect(reflect.ValueOf(unk))
 		if v.Type().ConvertibleTo(floatType) {
 			fv := v.Convert(floatType)
 			return fv.Float(), nil
-		} else if v.Type().ConvertibleTo(stringType) {
+		}
+		if v.Type().ConvertibleTo(stringType) {
 			sv := v.Convert(stringType)
 			s := sv.String()
 			return strconv.ParseFloat(s, 64)
-		} else {
-			msg := "Can't convert %v to float64"
-			return math.NaN(), fmt.Errorf(msg, v.Type())
 		}
+		msg := "can't convert %v to float64"
+		return math.NaN(), fmt.Errorf(msg, v.Type())
 	}
 }

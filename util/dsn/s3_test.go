@@ -30,7 +30,7 @@ func TestS3String(t *testing.T) {
 		t.Fatalf("Unknown Scheme: file=%#+v err=%v", f, err)
 	}
 
-	if "s3://data-bucket/path/filename.jpg" != f.String("filename.jpg") {
+	if f.String("filename.jpg") != "s3://data-bucket/path/filename.jpg" {
 		t.Fatalf("Miss match value: %v", f.String("filename.jpg"))
 	}
 

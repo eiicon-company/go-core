@@ -12,7 +12,7 @@ var (
 	// ensure to be changed
 	jwtSecretDefault = "****************"
 	// jwtSecret must be changed
-	jwtSecret = jwtSecretDefault // nolint:gosec // must be changed
+	jwtSecret = jwtSecretDefault
 	// jwtExpires is used as session key
 	jwtExpires = time.Hour * 24 * 90 // 3 months
 	// Domain is used s cookie domain
@@ -71,7 +71,7 @@ func JwtParse(encrypted string) (interface{}, error) {
 
 	token, err := jwt.Parse(encrypted, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(jwtSecret), nil
 	})

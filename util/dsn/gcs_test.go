@@ -31,7 +31,7 @@ func TestGCSString(t *testing.T) {
 		Key:    "/path/data.flac",
 	}
 
-	if "gs://data-bucket/path/filename.jpg" != f.String("filename.jpg") {
+	if f.String("filename.jpg") != "gs://data-bucket/path/filename.jpg" {
 		t.Fatalf("Miss match value: %v", f.String("filename.jpg"))
 	}
 

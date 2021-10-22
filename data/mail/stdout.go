@@ -22,10 +22,10 @@ func (m *stdoutMail) Send(data *Data) error {
 	fmt.Printf("Subject:%s\n", data.Subject)
 	fmt.Printf("**************************************************\n")
 	if data.Text != nil {
-		fmt.Println(string(data.Text[:]))
+		fmt.Println(string(data.Text))
 	}
 	if data.HTML != nil {
-		fmt.Println(string(data.HTML[:]))
+		fmt.Println(string(data.HTML))
 	}
 	fmt.Println("**************************************************")
 	return nil

@@ -38,7 +38,7 @@ func PreloadByID(id int, loads ...qm.QueryMod) []qm.QueryMod {
 // XXX: There is this code for compatibility
 //
 func PreloadBy(where []qm.QueryMod, loads ...qm.QueryMod) ([]qm.QueryMod, error) {
-	if len(where) <= 0 {
+	if len(where) == 0 {
 		return nil, xerrors.New("no queries")
 	}
 
@@ -61,7 +61,7 @@ func Preloads(loads ...qm.QueryMod) []qm.QueryMod {
 // XXX: There is this code for compatibility
 //
 func DescPreloadBy(where []qm.QueryMod, loads ...qm.QueryMod) ([]qm.QueryMod, error) {
-	if len(where) <= 0 {
+	if len(where) == 0 {
 		return nil, xerrors.New("no queries")
 	}
 
