@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/xerrors"
 
-	"github.com/volatiletech/sqlboiler/drivers/sqlboiler-mysql/driver"
+	"github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-mysql/driver"
 )
 
 type (
