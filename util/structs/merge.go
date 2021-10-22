@@ -7,7 +7,7 @@ import (
 	"github.com/eiicon-company/go-core/util/logger"
 	"github.com/imdario/mergo"
 
-	"gopkg.in/oleiade/reflections.v1"
+	"github.com/oleiade/reflections"
 )
 
 type (

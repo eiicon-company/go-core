@@ -35,10 +35,18 @@ linter:  ## Golang completely all of style checking
 						--enable=golint --enable=misspell --enable=varcheck --enable=structcheck \
 						--enable=errcheck --enable=gofmt --enable=ineffassign --enable=interfacer \
 						--enable=unconvert --enable=goconst --enable=govet --enable=gosec --enable=megacheck \
-						--disable=unused --disable=dupl ${target} | tee /dev/stderr`" ]; then \
+						${target} | tee /dev/stderr`" ]; then \
 			echo "^ linter errors!" && echo && exit 1; \
 		fi \
 	; done
+
+
+newlinter:  ## Golang completely all of style checking
+	@go get -v github.com/golangci/golangci-lint/cmd/golangci-lint 2> /dev/null
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	@if [ "`golangci-lint run -c .golangci.yml --timeout 10m0s | tee /dev/stderr`" ]; then \
+			echo "^ linter errors!" && echo && exit 1; \
+	fi
 
 
 golint:  ## run golint to all of gofiles

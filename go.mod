@@ -40,7 +40,7 @@ require (
 	github.com/mediocregopher/radix/v3 v3.7.0
 	github.com/microcosm-cc/bluemonday v1.0.5
 	github.com/oklog/ulid/v2 v2.0.2
-	github.com/oleiade/reflections v1.0.0 // indirect
+	github.com/oleiade/reflections v1.0.1
 	github.com/olivere/elastic/v7 v7.0.23
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
@@ -51,19 +51,20 @@ require (
 	github.com/yosssi/gohtml v0.0.0-20200519115854-476f5b4b8047
 	go.opencensus.io v0.23.0 // indirect
 	go.uber.org/dig v1.10.0
-	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect
+	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/net v0.0.0-20210331212208-0fccb6fa2b5c // indirect
+	golang.org/x/net v0.0.0-20210428140749-89ef3d95e781 // indirect
 	golang.org/x/oauth2 v0.0.0-20210402161424-2e8d93401602
-	golang.org/x/sys v0.0.0-20210402192133-700132347e07 // indirect
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	golang.org/x/text v0.3.6 // indirect
-	golang.org/x/tools v0.1.0 // indirect
+	golang.org/x/tools v0.1.5 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
-	google.golang.org/api v0.43.0
+	google.golang.org/api v0.44.0
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20210402141018-6c239bbf2bb1 // indirect
-	google.golang.org/grpc v1.36.1
+	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c // indirect
+	google.golang.org/grpc v1.38.0
 	google.golang.org/protobuf v1.26.0 // indirect
-	gopkg.in/oleiade/reflections.v1 v1.0.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
+
+require gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
