@@ -62,7 +62,7 @@ func ESConn(env Environment) (*elastic.Client, error) {
 	var op []elastic.ClientOptionFunc
 	op = append(op, elastic.SetHttpClient(&http.Client{Timeout: 30 * time.Second}))
 	op = append(op, elastic.SetURL(env.EnvString("ESURL")))
-	op = append(op, elastic.SetSniff(true))
+	op = append(op, elastic.SetSniff(!env.IsDebug()))
 	op = append(op, elastic.SetHealthcheck(true))
 	op = append(op, elastic.SetErrorLog(&logger.SentryErrorLogger{}))
 	// 8 retries with fixed delay of 100ms, 200ms, 300ms, 400ms, 500ms, 600ms, 700ms, and 800ms.
