@@ -62,15 +62,15 @@ func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
 }
 
 // DBSlowQuery applies it with sentry span
-func DBSlowQuery(dialect string) {
+func DBSlowQuery(dialect string, period time.Duration) {
 	sql.Register(dialect, proxy.NewProxyContext(&mysql.MySQLDriver{}, &proxy.HooksContext{
 		PreExec: func(ctx context.Context, stmt *proxy.Stmt, args []driver.NamedValue) (interface{}, error) {
 			return time.Now(), nil
 		},
 		PostExec: func(ctx context.Context, dt interface{}, stmt *proxy.Stmt, args []driver.NamedValue, result driver.Result, err error) error {
-			since, slow := time.Since(dt.(time.Time)), 75*time.Millisecond
+			since := time.Since(dt.(time.Time))
 
-			if since > slow {
+			if since > period {
 				span := sentry.StartSpan(ctx, stmt.QueryString) // TODO: set args
 				ctx = span.Context()
 				span.SetTag("SlowQuery", fmt.Sprint(since))
@@ -83,9 +83,9 @@ func DBSlowQuery(dialect string) {
 			return time.Now(), nil
 		},
 		PostQuery: func(ctx context.Context, dt interface{}, stmt *proxy.Stmt, args []driver.NamedValue, rows driver.Rows, err error) error {
-			since, slow := time.Since(dt.(time.Time)), 75*time.Millisecond
+			since := time.Since(dt.(time.Time))
 
-			if since > slow {
+			if since > period {
 				span := sentry.StartSpan(ctx, stmt.QueryString) // TODO: set args
 				ctx = span.Context()
 				span.SetTag("SlowQuery", fmt.Sprint(since))
