@@ -3,6 +3,7 @@ package util
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,11 +14,14 @@ import (
 
 	"cloud.google.com/go/bigquery"
 
+	"github.com/getsentry/sentry-go"
+	"github.com/go-sql-driver/mysql"
 	dlmredis "github.com/gomodule/redigo/redis"
 	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/mediocregopher/radix.v2/redis"
 	"github.com/mediocregopher/radix/v3"
 	"github.com/olivere/elastic/v7"
+	proxy "github.com/shogo82148/go-sql-proxy"
 
 	"github.com/eiicon-company/go-core/util/dlm"
 	"github.com/eiicon-company/go-core/util/dsn"
@@ -25,13 +29,13 @@ import (
 )
 
 // DBConn returns current database established connection
-func DBConn(env Environment) (*sql.DB, error) {
-	return SelectDBConn(env.EnvString("DSN"))
+func DBConn(dialect string, env Environment) (*sql.DB, error) {
+	return SelectDBConn(dialect, env.EnvString("DSN"))
 }
 
 // SelectDBConn can choose db connection
-func SelectDBConn(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("mysql", dsn)
+func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
+	db, err := sql.Open(dialect, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("it was unable to connect the DB. %s", err)
 	}
@@ -55,6 +59,42 @@ func SelectDBConn(dsn string) (*sql.DB, error) {
 	logger.Printf(msg, strings.Join(strings.Split(dsn, "@")[1:], ""), ver)
 
 	return db, nil
+}
+
+// DBSlowQuery applies it with sentry span
+func DBSlowQuery(dialect string) {
+	sql.Register(dialect, proxy.NewProxyContext(&mysql.MySQLDriver{}, &proxy.HooksContext{
+		PreExec: func(ctx context.Context, stmt *proxy.Stmt, args []driver.NamedValue) (interface{}, error) {
+			return time.Now(), nil
+		},
+		PostExec: func(ctx context.Context, dt interface{}, stmt *proxy.Stmt, args []driver.NamedValue, result driver.Result, err error) error {
+			since, slow := time.Since(dt.(time.Time)), 75*time.Millisecond
+
+			if since > slow {
+				span := sentry.StartSpan(ctx, stmt.QueryString) // TODO: set args
+				ctx = span.Context()
+				span.SetTag("SlowQuery", fmt.Sprint(since))
+				span.Finish()
+			}
+
+			return nil
+		},
+		PreQuery: func(ctx context.Context, stmt *proxy.Stmt, args []driver.NamedValue) (interface{}, error) {
+			return time.Now(), nil
+		},
+		PostQuery: func(ctx context.Context, dt interface{}, stmt *proxy.Stmt, args []driver.NamedValue, rows driver.Rows, err error) error {
+			since, slow := time.Since(dt.(time.Time)), 75*time.Millisecond
+
+			if since > slow {
+				span := sentry.StartSpan(ctx, stmt.QueryString) // TODO: set args
+				ctx = span.Context()
+				span.SetTag("SlowQuery", fmt.Sprint(since))
+				span.Finish()
+			}
+
+			return nil
+		},
+	}))
 }
 
 // ESConn returns established connection
