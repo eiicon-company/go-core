@@ -2,12 +2,12 @@ package testdb
 
 import (
 	"database/sql"
-	"github.com/volatiletech/randomize"
 	"net"
 	"strconv"
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/volatiletech/randomize"
 	"golang.org/x/xerrors"
 )
 

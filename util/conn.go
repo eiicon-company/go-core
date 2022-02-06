@@ -72,7 +72,7 @@ func DBSlowQuery(dialect string, period time.Duration) {
 
 			if since > period {
 				span := sentry.StartSpan(ctx, stmt.QueryString) // TODO: set args
-				ctx = span.Context()
+				ctx = span.Context()                            //nolint
 				span.SetTag("SlowQuery", fmt.Sprint(since))
 				span.Finish()
 			}
@@ -87,7 +87,7 @@ func DBSlowQuery(dialect string, period time.Duration) {
 
 			if since > period {
 				span := sentry.StartSpan(ctx, stmt.QueryString) // TODO: set args
-				ctx = span.Context()
+				ctx = span.Context()                            //nolint
 				span.SetTag("SlowQuery", fmt.Sprint(since))
 				span.Finish()
 			}

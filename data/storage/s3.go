@@ -109,8 +109,8 @@ func (adp *s3Storage) Delete(ctx context.Context, filename string) error {
 
 // Merge will merge file into the s3
 func (adp *s3Storage) Merge(ctx context.Context, filename string, data []byte) error {
-	head, _ := adp.Read(ctx, filename)
-	entire := append(head, data...)
+	entire, _ := adp.Read(ctx, filename)
+	entire = append(entire, data...)
 
 	return adp.Write(ctx, filename, entire)
 }
