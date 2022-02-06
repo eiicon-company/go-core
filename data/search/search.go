@@ -22,6 +22,7 @@ type (
 		DeleteDocument(ctx context.Context, name string, id int) (*Result, error)
 		UpdateByScript(ctx context.Context, name string, id int, script string, params map[string]interface{}) (*Result, error)
 		UpsertByScript(ctx context.Context, name string, id int, script string, params, upsert map[string]interface{}) (*Result, error)
+		ListIndexNames(ctx context.Context) ([]string, error)
 		CreateIndex(ctx context.Context, name string, index string) (*Result, error)
 		DeleteIndex(ctx context.Context, name string) (*Result, error)
 		Aliases(ctx context.Context, name string) (*Result, error)
@@ -159,6 +160,10 @@ func (c *command) DeleteDocument(ctx context.Context, name string, id int) (*Res
 	}
 
 	return c.do(ctx, fn)
+}
+
+func (c *command) ListIndexNames(ctx context.Context) ([]string, error) {
+	return c.ESClient.IndexNames()
 }
 
 func (c *command) CreateIndex(ctx context.Context, name string, index string) (*Result, error) {
