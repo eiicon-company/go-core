@@ -2,7 +2,7 @@ version: 2.1
 
 references:
   go_image: &go_image
-    - image: circleci/golang:1.17
+    - image: cimg/go:1.18
 
   default: &default
     working_directory: ~/go-core
@@ -74,7 +74,7 @@ jobs:
   # Check https://circleci.com/docs/2.0/language-go/ for more details
   go_build:
     <<: *default
-    working_directory: /go/src/github.com/eiicon-company/go-core
+    working_directory: ~/go/src/github.com/eiicon-company/go-core
     docker: *go_image
     steps:
       - checkout
@@ -84,7 +84,7 @@ jobs:
 
       - restore_cache:
           keys:
-          - v1-go-dependencies-{{ checksum "go.sum" }}
+          - v2-go-dependencies-{{ checksum "go.sum" }}
 
       - run:
           name: misspell
@@ -107,9 +107,9 @@ jobs:
             make test || make test || make test
 
       - save_cache:
-          key: v1-go-dependencies-{{ checksum "go.sum" }}
+          key: v2-go-dependencies-{{ checksum "go.sum" }}
           paths:
-            - /go/pkg
+            - ~/go/pkg
 
 workflows:
   version: 2.1

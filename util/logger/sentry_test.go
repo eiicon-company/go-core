@@ -46,7 +46,7 @@ func TestSentryPanic(t *testing.T) {
 	Panicln("nonononon")
 }
 
-func TestSentryCretical(t *testing.T) {
+func TestSentryCritical(t *testing.T) {
 	t.Helper()
 
 	out := &bytes.Buffer{}
@@ -57,7 +57,7 @@ func TestSentryCretical(t *testing.T) {
 	if !strings.HasSuffix(out.String(), "ldkdkdkdks\n") {
 		t.Errorf("Miss match value: %s", out.String())
 	}
-	if !strings.Contains(out.String(), "[CRETICAL]") {
+	if !strings.Contains(out.String(), "[CRITICAL]") {
 		t.Errorf("Miss match value: %s", out.String())
 	}
 	out.Reset()
@@ -152,7 +152,7 @@ func TestSentryTODO(t *testing.T) {
 func setup(out io.Writer) {
 	noLogger = log.New(out, "[NOLEVEL] ", log.LstdFlags|log.Llongfile)
 	panicLogger = log.New(out, "[PANIC] ", log.LstdFlags|log.Llongfile)
-	creticalLogger = log.New(out, "[CRETICAL] ", log.LstdFlags|log.Llongfile)
+	criticalLogger = log.New(out, "[CRITICAL] ", log.LstdFlags|log.Llongfile)
 	errLogger = log.New(out, "[ERROR] ", log.LstdFlags|log.Llongfile)
 	warnLogger = log.New(out, "[WARN] ", log.LstdFlags|log.Llongfile)
 	infoLogger = log.New(out, "[INFO] ", log.LstdFlags|log.Llongfile)
@@ -163,7 +163,7 @@ func setup(out io.Writer) {
 func TestMain(m *testing.M) {
 	origNoLogger := noLogger
 	origPanicLogger := panicLogger
-	origCreticalLogger := creticalLogger
+	origCriticalLogger := criticalLogger
 	origErrLogger := errLogger
 	origWarnLogger := warnLogger
 	origInfoLogger := infoLogger
@@ -174,7 +174,7 @@ func TestMain(m *testing.M) {
 
 	noLogger = origNoLogger
 	panicLogger = origPanicLogger
-	creticalLogger = origCreticalLogger
+	criticalLogger = origCriticalLogger
 	errLogger = origErrLogger
 	warnLogger = origWarnLogger
 	infoLogger = origInfoLogger

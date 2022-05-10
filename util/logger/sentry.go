@@ -16,7 +16,7 @@ import (
 var (
 	noLogger       = log.New(os.Stdout, "[NOLEVEL] ", log.LstdFlags|log.Llongfile)
 	panicLogger    = log.New(os.Stdout, "[PANIC] ", log.LstdFlags|log.Llongfile)
-	creticalLogger = log.New(os.Stdout, "[CRETICAL] ", log.LstdFlags|log.Llongfile)
+	criticalLogger = log.New(os.Stdout, "[CRITICAL] ", log.LstdFlags|log.Llongfile)
 	errLogger      = log.New(os.Stdout, "[ERROR] ", log.LstdFlags|log.Llongfile)
 	warnLogger     = log.New(os.Stdout, "[WARN] ", log.LstdFlags|log.Llongfile)
 	infoLogger     = log.New(os.Stdout, "[INFO] ", log.LstdFlags|log.Llongfile)
@@ -61,8 +61,8 @@ type (
 	NOLEVEL struct{ s string }
 	// PANIC Just for rename in sentry dashboard eventlog title
 	PANIC struct{ s string }
-	// CRETICAL Just for rename in sentry dashboard eventlog title
-	CRETICAL struct{ s string }
+	// CRITICAL Just for rename in sentry dashboard eventlog title
+	CRITICAL struct{ s string }
 	// ERROR Just for rename in sentry dashboard eventlog title
 	ERROR struct{ s string }
 	// WARN Just for rename in sentry dashboard eventlog title
@@ -77,15 +77,15 @@ type (
 
 func (e *NOLEVEL) Error() string  { return e.s }
 func (e *PANIC) Error() string    { return e.s }
-func (e *CRETICAL) Error() string { return e.s }
+func (e *CRITICAL) Error() string { return e.s }
 func (e *ERROR) Error() string    { return e.s }
 func (e *WARN) Error() string     { return e.s }
 func (e *INFO) Error() string     { return e.s }
 func (e *DEBUG) Error() string    { return e.s }
 func (e *TODO) Error() string     { return e.s }
 
-// C is alias with cretical
-func C(format string, args ...interface{}) { creticaldeps(sentry.CaptureMessage, 3, format, args...) }
+// C is alias with critical
+func C(format string, args ...interface{}) { criticaldeps(sentry.CaptureMessage, 3, format, args...) }
 
 // E is alias with error
 func E(format string, args ...interface{}) { errdeps(sentry.CaptureMessage, 3, format, args...) }
@@ -105,11 +105,11 @@ func T(format string, args ...interface{}) { tododeps(sentry.CaptureMessage, 3, 
 // CCtx pritns as information
 func CCtx(ctx context.Context, format string, args ...interface{}) {
 	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		creticaldeps(hub.CaptureMessage, 3, format, args...)
+		criticaldeps(hub.CaptureMessage, 3, format, args...)
 		return
 	}
 
-	creticaldeps(sentry.CaptureMessage, 3, format, args...)
+	criticaldeps(sentry.CaptureMessage, 3, format, args...)
 }
 
 // ECtx pritns as information
@@ -462,79 +462,79 @@ func errdeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 	}
 }
 
-// CreticalfWithContext prints as cretical
-func CreticalfWithContext(ctx context.Context, format string, args ...interface{}) {
+// CriticalfWithContext prints as critical
+func CriticalfWithContext(ctx context.Context, format string, args ...interface{}) {
 	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		creticaldeps(hub.CaptureMessage, 3, format, args...)
+		criticaldeps(hub.CaptureMessage, 3, format, args...)
 		return
 	}
 
-	creticaldeps(sentry.CaptureMessage, 3, format, args...)
+	criticaldeps(sentry.CaptureMessage, 3, format, args...)
 }
 
-// CreticalnWithContext outputs ...
-func CreticalnWithContext(ctx context.Context, args ...interface{}) {
+// CriticalnWithContext outputs ...
+func CriticalnWithContext(ctx context.Context, args ...interface{}) {
 	s := fmt.Sprintln(args...)
 
 	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		creticaldeps(hub.CaptureMessage, 3, s)
+		criticaldeps(hub.CaptureMessage, 3, s)
 		return
 	}
 
-	creticaldeps(sentry.CaptureMessage, 3, s)
+	criticaldeps(sentry.CaptureMessage, 3, s)
 }
 
-// CrtlnWithContext prints as cretical
+// CrtlnWithContext prints as critical
 func CrtlnWithContext(ctx context.Context, args ...interface{}) {
 	s := fmt.Sprintln(args...)
 
 	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		creticaldeps(hub.CaptureMessage, 3, s)
+		criticaldeps(hub.CaptureMessage, 3, s)
 		return
 	}
 
-	creticaldeps(sentry.CaptureMessage, 3, s)
+	criticaldeps(sentry.CaptureMessage, 3, s)
 }
 
-// CrtlfWithContext prints as cretical
+// CrtlfWithContext prints as critical
 func CrtlfWithContext(ctx context.Context, format string, args ...interface{}) {
 	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		creticaldeps(hub.CaptureMessage, 3, format, args...)
+		criticaldeps(hub.CaptureMessage, 3, format, args...)
 		return
 	}
 
-	creticaldeps(sentry.CaptureMessage, 3, format, args...)
+	criticaldeps(sentry.CaptureMessage, 3, format, args...)
 }
 
-// Creticalf pritns as cretical
-func Creticalf(format string, args ...interface{}) {
-	creticaldeps(sentry.CaptureMessage, 3, format, args...)
+// Criticalf pritns as critical
+func Criticalf(format string, args ...interface{}) {
+	criticaldeps(sentry.CaptureMessage, 3, format, args...)
 }
 
-// Creticaln outputs ...
-func Creticaln(args ...interface{}) {
-	creticaldeps(sentry.CaptureMessage, 3, fmt.Sprintln(args...))
+// Criticaln outputs ...
+func Criticaln(args ...interface{}) {
+	criticaldeps(sentry.CaptureMessage, 3, fmt.Sprintln(args...))
 }
 
-// Crtln pritns as cretical
+// Crtln pritns as critical
 func Crtln(args ...interface{}) {
-	creticaldeps(sentry.CaptureMessage, 3, fmt.Sprintln(args...))
+	criticaldeps(sentry.CaptureMessage, 3, fmt.Sprintln(args...))
 }
 
-// Crtlf pritns as cretical
+// Crtlf pritns as critical
 func Crtlf(format string, args ...interface{}) {
-	creticaldeps(sentry.CaptureMessage, 3, format, args...)
+	criticaldeps(sentry.CaptureMessage, 3, format, args...)
 }
 
-func creticaldeps(fn MessageFunc, deps int, format string, args ...interface{}) {
+func criticaldeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
-	_ = creticalLogger.Output(deps, s)
+	_ = criticalLogger.Output(deps, s)
 
 	if isSentry {
 		_, f, line, _ := runtime.Caller(deps - 1)
-		s = fmt.Sprintf("[CRETICAL] %s \non %s:%d", s, f, line)
+		s = fmt.Sprintf("[CRITICAL] %s \non %s:%d", s, f, line)
 		// TODO: tidy up
-		// raven.CaptureMessage(s, nil, sentry.NewException(&CRETICAL{s}, trace(deps)))
+		// raven.CaptureMessage(s, nil, sentry.NewException(&CRITICAL{s}, trace(deps)))
 		fn(s)
 	}
 }
@@ -623,9 +623,9 @@ func printdeps(fn MessageFunc, deps int, args ...interface{}) {
 
 	switch {
 	case strings.Contains(s, "[PANIC]"):
-		creticaldeps(fn, deps+1, s) // TODO: soft panic logging
-	case strings.Contains(s, "[CRETICAL]"):
-		creticaldeps(fn, deps+1, s)
+		criticaldeps(fn, deps+1, s) // TODO: soft panic logging
+	case strings.Contains(s, "[CRITICAL]"):
+		criticaldeps(fn, deps+1, s)
 	case strings.Contains(s, "[ERROR]"):
 		errdeps(fn, deps+1, s)
 	case strings.Contains(s, "[WARN]"):
