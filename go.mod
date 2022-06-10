@@ -41,6 +41,8 @@ require (
 	google.golang.org/grpc v1.40.0
 )
 
+require github.com/spf13/cast v1.4.1
+
 require (
 	cloud.google.com/go v0.93.3 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
@@ -53,7 +55,6 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/spf13/cast v1.4.1 // indirect
 	github.com/volatiletech/inflect v0.0.1 // indirect
 	github.com/volatiletech/strmangle v0.0.1 // indirect
 	go.opencensus.io v0.23.0 // indirect
