@@ -22,6 +22,7 @@ import (
 	"github.com/mediocregopher/radix/v3"
 	"github.com/olivere/elastic/v7"
 	proxy "github.com/shogo82148/go-sql-proxy"
+	"github.com/spf13/cast"
 
 	"github.com/eiicon-company/go-core/util/dlm"
 	"github.com/eiicon-company/go-core/util/dsn"
@@ -62,19 +63,35 @@ func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
 }
 
 // DBSlowQuery applies it with sentry span
+//
+// https://github.com/getsentry/sentry-ruby/issues/1674
+// https://develop.sentry.dev/sdk/performance/span-operations/#database
+// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
+//
 func DBSlowQuery(dialect string, period time.Duration) {
 	sql.Register(dialect, proxy.NewProxyContext(&mysql.MySQLDriver{}, &proxy.HooksContext{
 		PreExec: func(ctx context.Context, stmt *proxy.Stmt, args []driver.NamedValue) (interface{}, error) {
 			return time.Now(), nil
 		},
 		PostExec: func(ctx context.Context, dt interface{}, stmt *proxy.Stmt, args []driver.NamedValue, result driver.Result, err error) error {
-			since := time.Since(dt.(time.Time))
+			startTime := dt.(time.Time)
+			since := time.Since(startTime)
 
 			if since > period {
-				span := sentry.StartSpan(ctx, stmt.QueryString) // TODO: set args
-				ctx = span.Context()                            //nolint
-				span.SetTag("SlowQuery", fmt.Sprint(since))
+				span := sentry.StartSpan(ctx, "db.sql.exec.slow", func(s *sentry.Span) {
+					s.StartTime = startTime
+					s.EndTime = time.Now().Add(since)
+					s.Description = stmt.QueryString
+
+					data := map[string]interface{}{}
+					for _, arg := range args {
+						data[arg.Name] = cast.ToString(arg.Value)
+					}
+					s.Data = data
+				})
 				span.Finish()
+
+				ctx = span.Context() //nolint
 			}
 
 			return nil
@@ -83,13 +100,24 @@ func DBSlowQuery(dialect string, period time.Duration) {
 			return time.Now(), nil
 		},
 		PostQuery: func(ctx context.Context, dt interface{}, stmt *proxy.Stmt, args []driver.NamedValue, rows driver.Rows, err error) error {
-			since := time.Since(dt.(time.Time))
+			startTime := dt.(time.Time)
+			since := time.Since(startTime)
 
 			if since > period {
-				span := sentry.StartSpan(ctx, stmt.QueryString) // TODO: set args
-				ctx = span.Context()                            //nolint
-				span.SetTag("SlowQuery", fmt.Sprint(since))
+				span := sentry.StartSpan(ctx, "db.sql.query.slow", func(s *sentry.Span) {
+					s.StartTime = startTime
+					s.EndTime = time.Now().Add(since)
+					s.Description = stmt.QueryString
+
+					data := map[string]interface{}{}
+					for _, arg := range args {
+						data[arg.Name] = cast.ToString(arg.Value)
+					}
+					s.Data = data
+				})
 				span.Finish()
+
+				ctx = span.Context() //nolint
 			}
 
 			return nil
