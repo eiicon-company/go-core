@@ -24,7 +24,7 @@ var (
 	todoLogger     = log.New(os.Stdout, "[TODO] ", log.LstdFlags|log.Llongfile)
 	isDebug        = false
 	isSentry       = false
-	without        = false
+	isIgnored      = true
 )
 
 // TODO: tidy up
@@ -253,7 +253,7 @@ func debugdeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 		s := fmt.Sprintf(format, args...)
 		_ = debugLogger.Output(deps, s)
 
-		if without && isSentry {
+		if isIgnored && isSentry {
 			_, f, line, _ := runtime.Caller(deps - 1)
 			s = fmt.Sprintf("[DEBUG] %s \non %s:%d", s, f, line)
 			// TODO: tidy up
@@ -299,7 +299,7 @@ func infodeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
 	_ = infoLogger.Output(deps, s)
 
-	if without && isSentry {
+	if isIgnored && isSentry {
 		_, f, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[INFO] %s \non %s:%d", s, f, line)
 		// TODO: tidy up
@@ -376,7 +376,7 @@ func warndeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
 	_ = warnLogger.Output(deps, s)
 
-	if without && isSentry {
+	if isIgnored && isSentry {
 		_, f, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[WARN] %s \non %s:%d", s, f, line)
 		// TODO: tidy up
