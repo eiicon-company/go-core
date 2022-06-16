@@ -24,7 +24,7 @@ var (
 	todoLogger     = log.New(os.Stdout, "[TODO] ", log.LstdFlags|log.Llongfile)
 	isDebug        = false
 	isSentry       = false
-	isIgnored      = true
+	isVerbose      = false
 )
 
 // TODO: tidy up
@@ -162,14 +162,19 @@ func TCtx(ctx context.Context, format string, args ...interface{}) {
 	tododeps(sentry.CaptureMessage, 3, format, args...)
 }
 
-// SetDebug set debug flag
+// SetDebug set a debug by.
 func SetDebug(debug bool) {
 	isDebug = debug
 }
 
-// SetSentry set
+// SetSentry a switcher
 func SetSentry(sentry bool) {
 	isSentry = sentry
+}
+
+// SetVerbose set a verbose logging by.
+func SetVerbose(debug bool) {
+	isVerbose = debug
 }
 
 // TodofWithContext outputs ...
@@ -253,7 +258,7 @@ func debugdeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 		s := fmt.Sprintf(format, args...)
 		_ = debugLogger.Output(deps, s)
 
-		if isIgnored && isSentry {
+		if isVerbose && isSentry {
 			_, f, line, _ := runtime.Caller(deps - 1)
 			s = fmt.Sprintf("[DEBUG] %s \non %s:%d", s, f, line)
 			// TODO: tidy up
@@ -299,7 +304,7 @@ func infodeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
 	_ = infoLogger.Output(deps, s)
 
-	if isIgnored && isSentry {
+	if isVerbose && isSentry {
 		_, f, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[INFO] %s \non %s:%d", s, f, line)
 		// TODO: tidy up
@@ -376,7 +381,7 @@ func warndeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
 	_ = warnLogger.Output(deps, s)
 
-	if isIgnored && isSentry {
+	if isVerbose && isSentry {
 		_, f, line, _ := runtime.Caller(deps - 1)
 		s = fmt.Sprintf("[WARN] %s \non %s:%d", s, f, line)
 		// TODO: tidy up
