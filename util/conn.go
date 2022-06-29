@@ -42,7 +42,12 @@ func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
 	}
 
 	// db configuration
-	// db.SetConnMaxLifetime(time.Minute * 10) // https://github.blog/2020-05-20-three-bugs-in-the-go-mysql-driver/
+	//
+	// https://github.blog/2020-05-20-three-bugs-in-the-go-mysql-driver/
+	// Oh Gawd
+	// https://github.com/go-sql-driver/mysql/issues/1302#issuecomment-1019842712
+	//
+	db.SetConnMaxLifetime(time.Minute * 5) // https://github.com/go-sql-driver/mysql/issues/1120#issuecomment-636795680
 	db.SetMaxIdleConns(4)
 	db.SetMaxOpenConns(8)
 
