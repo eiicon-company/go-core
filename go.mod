@@ -1,6 +1,6 @@
 module github.com/eiicon-company/go-core
 
-go 1.17
+go 1.18
 
 require (
 	cloud.google.com/go/bigquery v1.16.0
@@ -41,12 +41,18 @@ require (
 	google.golang.org/grpc v1.40.0
 )
 
-require github.com/spf13/cast v1.4.1
+require (
+	github.com/fatih/structs v1.1.0
+	github.com/gigawattio/metaflector v0.0.0-20180317191240-d098812229a0
+	github.com/jinzhu/copier v0.3.5
+	github.com/spf13/cast v1.4.1
+)
 
 require (
 	cloud.google.com/go v0.93.3 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0 // indirect
+	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/friendsofgo/errors v0.9.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.1.0 // indirect
