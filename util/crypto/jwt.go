@@ -23,6 +23,11 @@ var (
 	MaxAge = time.Hour * 24 * 75 // 2.5 months
 )
 
+// JwtTokenOption used as a generate token option
+type JwtTokenOption struct {
+	Expires time.Duration
+}
+
 // SetExpires set value
 func SetExpires(expires time.Duration) {
 	jwtExpires = expires
@@ -49,14 +54,18 @@ func SetMaxAge(age time.Duration) {
 }
 
 // JwtToken returns jwt token with expires
-func JwtToken(data interface{}) (string, error) {
+func JwtToken(data interface{}, option JwtTokenOption) (string, error) {
 	if jwtSecret == jwtSecretDefault {
 		return "", xerrors.New("must be changed default secret")
 	}
 
+	expires := jwtExpires
+	if option.Expires != 0 {
+		expires = option.Expires
+	}
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"data": data,
-		"exp":  time.Now().Add(jwtExpires).Unix(),
+		"exp":  time.Now().Add(expires).Unix(),
 		"iat":  time.Now().Unix(),
 	})
 	// Sign and get the complete encoded token as a string using the secret
