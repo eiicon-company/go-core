@@ -58,8 +58,8 @@ linters:
     - goconst
     - gocritic
     - gocyclo
-    - gofmt
-    - goimports
+    # - gofmt
+    # - goimports
     - revive # replaced from golint
     # - golint # Deprecated
     # - gomnd
