@@ -129,7 +129,7 @@ func TestTransformDataURIFromTwiceImages(t *testing.T) {
 	t.Logf("Return: %+#v", got)
 }
 
-// nolint:funlen
+//nolint:funlen
 func TestTransformDataURIFromEntireContent(t *testing.T) {
 	t.Helper()
 
