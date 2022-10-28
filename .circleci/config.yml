@@ -94,7 +94,8 @@ jobs:
       - run:
           name: linter
           command: |
-            make linter newlinter
+            make linter
+            make newlinter
 
       - run:
           name: golint

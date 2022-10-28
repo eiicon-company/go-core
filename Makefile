@@ -60,7 +60,7 @@ golint:  ## run golint to all of gofiles
 misspell:  ## Check misspelling to files except go files
 	@go get -v github.com/client9/misspell/cmd/misspell 2> /dev/null
 	@go install github.com/client9/misspell/cmd/misspell
-	@if [ "`find . -type f | xargs misspell -error | tee /dev/stderr`" ]; then \
+	@if [ "`find . -type f -name '*.go' | xargs misspell -error | tee /dev/stderr`" ]; then \
 		echo "^ misspell errors!" && echo && exit 1; \
 	fi
 
