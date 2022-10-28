@@ -2,7 +2,7 @@ version: 2.1
 
 references:
   go_image: &go_image
-    - image: circleci/golang:1.18
+    - image: cimg/python:3.9
 
   default: &default
     working_directory: ~/go-core
@@ -74,7 +74,7 @@ jobs:
   # Check https://circleci.com/docs/2.0/language-go/ for more details
   go_build:
     <<: *default
-    working_directory: /go/src/github.com/eiicon-company/go-core
+    working_directory: ~/go/src/github.com/eiicon-company/go-core
     docker: *go_image
     steps:
       - checkout
