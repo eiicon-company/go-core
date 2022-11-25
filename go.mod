@@ -41,7 +41,10 @@ require (
 	google.golang.org/grpc v1.40.0
 )
 
-require github.com/spf13/cast v1.4.1
+require (
+	github.com/spf13/cast v1.4.1
+	github.com/volatiletech/null/v8 v8.1.2
+)
 
 require (
 	cloud.google.com/go v0.93.3 // indirect
