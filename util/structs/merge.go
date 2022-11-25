@@ -41,6 +41,10 @@ func Merge(dest interface{}, values ...interface{}) error {
 	data := make(map[string]interface{})
 
 	for _, value := range values {
+		if value == nil {
+			continue
+		}
+
 		v, _ := reflections.Items(value)
 		if err := mergo.Map(&data, v, mergo.WithTransformers(timeTransfomer{})); err != nil {
 			logger.E("merge.go Merge: %s", err)
@@ -55,8 +59,12 @@ func OverwriteMerge(dest interface{}, values ...interface{}) error {
 	data := make(map[string]interface{})
 
 	for _, value := range values {
+		if value == nil {
+			continue
+		}
+
 		v, _ := reflections.Items(value)
-		if err := mergo.MapWithOverwrite(&data, v, mergo.WithTransformers(timeTransfomer{})); err != nil {
+		if err := mergo.Map(&data, v, mergo.WithTransformers(timeTransfomer{})); err != nil {
 			logger.E("merge.go OverwriteMerge: %s", err)
 		}
 	}
