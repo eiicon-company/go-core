@@ -43,12 +43,16 @@ func TestOverwriteMerge(t *testing.T) {
 		ProvstoreID: null.NewInt(2, 2 > 0),
 		DeletedAt:   null.TimeFrom(time.Now().Add(1 * time.Hour)),
 		IsDeleted:   false,
+		UpdatedAt:   time.Now().Add(1 * time.Hour),
 	}
 
 	if err := OverwriteMerge(dest, src1); err != nil {
 		t.Fatalf("must be nil: %+#v", err)
 	}
 
+	if dest.ID != 0 {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
 	if dest.StoreID != 2 {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
@@ -59,6 +63,9 @@ func TestOverwriteMerge(t *testing.T) {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
 	if dest.DeletedAt.Time != src1.DeletedAt.Time {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if dest.UpdatedAt == now {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
 }
@@ -95,6 +102,9 @@ func TestOverwriteMergeRestParameters(t *testing.T) {
 		t.Fatalf("must be nil: %+#v", err)
 	}
 
+	if dest.ID != 0 {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
 	if dest.StoreID != 2 {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
@@ -108,6 +118,159 @@ func TestOverwriteMergeRestParameters(t *testing.T) {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
 	if dest.Name != "src2" {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+}
+
+func TestMerge(t *testing.T) {
+	t.Helper()
+	t.Parallel()
+
+	now := time.Now()
+
+	dest := &testModel{
+		ID:          1,
+		StoreID:     1,
+		ProvstoreID: null.IntFrom(1),
+		Name:        "1",
+		DeletedAt:   null.TimeFrom(now),
+		IsDeleted:   true,
+		Score:       null.Float32From(1),
+		Reviews:     null.IntFrom(1),
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+	src1 := &testModel{
+		StoreID:     2,
+		ProvstoreID: null.NewInt(2, 2 > 0),
+		DeletedAt:   null.TimeFrom(time.Now().Add(1 * time.Hour)),
+		IsDeleted:   false,
+	}
+
+	if err := Merge(dest, src1); err != nil {
+		t.Fatalf("must be nil: %+#v", err)
+	}
+
+	if dest.ID != 1 {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if dest.StoreID != 1 {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if dest.ProvstoreID.Int != 1 {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if !dest.IsDeleted {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if dest.DeletedAt.Time == now {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+}
+
+func TestMergeRestParameters(t *testing.T) {
+	t.Helper()
+	t.Parallel()
+
+	now := time.Now()
+
+	dest := &testModel{
+		ID:          1,
+		StoreID:     1,
+		ProvstoreID: null.IntFrom(1),
+		Name:        "1",
+		DeletedAt:   null.TimeFrom(now),
+		IsDeleted:   true,
+		Score:       null.Float32From(1),
+		Reviews:     null.IntFrom(1),
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+	src1 := &testModel{
+		StoreID:     2,
+		ProvstoreID: null.NewInt(2, 2 > 0),
+		DeletedAt:   null.TimeFrom(time.Now().Add(1 * time.Hour)),
+		IsDeleted:   false,
+	}
+	src2 := &testModel{
+		Name: "src2",
+	}
+
+	if err := Merge(dest, src1, src2); err != nil {
+		t.Fatalf("must be nil: %+#v", err)
+	}
+
+	if dest.ID != 1 {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if dest.StoreID != 1 {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if dest.ProvstoreID.Int != 1 {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if !dest.IsDeleted {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if dest.DeletedAt.Time == now {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if dest.Name != "1" {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+}
+
+func TestMergeNil(t *testing.T) {
+	t.Helper()
+	t.Parallel()
+
+	now := time.Now()
+
+	dest := &testModel{
+		ID:          1,
+		StoreID:     1,
+		ProvstoreID: null.IntFrom(1),
+		Name:        "1",
+		DeletedAt:   null.TimeFrom(now),
+		IsDeleted:   true,
+		Score:       null.Float32From(1),
+		Reviews:     null.IntFrom(1),
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+	src1 := &testModel{
+		StoreID:     2,
+		ProvstoreID: null.NewInt(2, 2 > 0),
+		DeletedAt:   null.TimeFrom(time.Now().Add(1 * time.Hour)),
+		IsDeleted:   false,
+	}
+	src2 := &testModel{
+		Name: "src2",
+	}
+
+	if err := Merge(dest, src1, nil, src2); err != nil {
+		t.Fatalf("must be nil: %+#v", err)
+	}
+
+	if dest.ID != 1 {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if dest.StoreID != 1 {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if dest.ProvstoreID.Int != 1 {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if !dest.IsDeleted {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if dest.DeletedAt.Time == now {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if dest.Name != "1" {
+		t.Fatalf("invalid value: %+#v", dest)
+	}
+	if dest.UpdatedAt != now {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
 }
