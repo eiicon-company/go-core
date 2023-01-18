@@ -3,7 +3,6 @@ package priv
 import "strings"
 
 // StrUniq returns reduced equivemnt str
-//
 func StrUniq(texts []string) []string {
 	m := make(map[string]struct{})
 	for _, t := range texts {
@@ -19,7 +18,6 @@ func StrUniq(texts []string) []string {
 }
 
 // GetMapValue walks the dot-delimited `path` to return a nested map value, or nil.
-//
 func GetMapValue(m map[string]interface{}, path string) interface{} {
 	var obj interface{} = m
 	var val interface{}

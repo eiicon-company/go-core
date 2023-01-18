@@ -44,7 +44,6 @@ func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
 	// https://github.blog/2020-05-20-three-bugs-in-the-go-mysql-driver/
 	// Oh Gawd
 	// https://github.com/go-sql-driver/mysql/issues/1302#issuecomment-1019842712
-	//
 	db.SetConnMaxLifetime(time.Minute * 5) // https://github.com/go-sql-driver/mysql/issues/1120#issuecomment-636795680
 	db.SetMaxIdleConns(4)
 	db.SetMaxOpenConns(8)
@@ -70,7 +69,6 @@ func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
 // https://github.com/getsentry/sentry-ruby/issues/1674
 // https://develop.sentry.dev/sdk/performance/span-operations/#database
 // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
-//
 func DBSlowQuery(dialect string, period time.Duration) {
 	sql.Register(dialect, proxy.NewProxyContext(&mysql.MySQLDriver{}, &proxy.HooksContext{
 		PreExec: func(ctx context.Context, stmt *proxy.Stmt, args []driver.NamedValue) (interface{}, error) {
