@@ -23,25 +23,7 @@ test:  ## Test to all of directories
 	AWS_REGION=ap-northeast-1 AWS_ACCESS_KEY_ID=1 AWS_SECRET_ACCESS_KEY=2 go test -mod=mod -cover -race ./...
 
 
-# https://github.com/golangci/golangci-lint
-#
-# TODO: godox: Tool for detection of FIXME, TODO and other comment keywords [fast: true, auto-fix: false]
-#
 linter:  ## Golang completely all of style checking
-	@go get -v github.com/golangci/golangci-lint/cmd/golangci-lint 2> /dev/null
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint
-	@for target in util/... data/...; do \
-		if [ "`golangci-lint run --issues-exit-code 1 --enable=deadcode --enable=gocyclo \
-						--enable=golint --enable=misspell --enable=varcheck --enable=structcheck \
-						--enable=errcheck --enable=gofmt --enable=ineffassign --enable=interfacer \
-						--enable=unconvert --enable=goconst --enable=govet --enable=gosec --enable=megacheck \
-						${target} | tee /dev/stderr`" ]; then \
-			echo "^ linter errors!" && echo && exit 1; \
-		fi \
-	; done
-
-
-newlinter:  ## Golang completely all of style checking
 	@go get -v github.com/golangci/golangci-lint/cmd/golangci-lint 2> /dev/null
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint
 	@if [ "`golangci-lint run -c .golangci.yml --timeout 10m0s | tee /dev/stderr`" ]; then \
