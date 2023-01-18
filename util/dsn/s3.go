@@ -18,7 +18,7 @@ import (
 
 type (
 	// S3DSN s3://data-bucket/path/
-	// 			 s3://data-bucket/path/?url=https://exampl.ecom:80
+	// s3://data-bucket/path/?url=https://exampl.ecom:80
 	S3DSN struct {
 		Sess   *session.Session
 		Bucket string
@@ -42,7 +42,6 @@ func (dsn *S3DSN) String(filename string) string {
 // URL returns https URL
 //
 // TODO: Get no auth or authed or private or public URL
-//
 func (dsn *S3DSN) URL(filename string) string {
 	if dsn.PublicURL != nil {
 		u, _ := url.Parse(dsn.PublicURL.String())

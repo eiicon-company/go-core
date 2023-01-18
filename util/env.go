@@ -5,7 +5,6 @@ type (
 	// Environment defines public interfaces
 	//
 	// must be implement in children
-	//
 	Environment interface {
 		// IsProd returns determined product environment mode
 		IsProd() bool

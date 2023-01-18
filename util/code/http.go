@@ -7,7 +7,6 @@ import (
 )
 
 // HTTP2GRPC returns gRPC Status Code
-//
 func HTTP2GRPC(httpStatus int) codes.Code {
 	switch httpStatus {
 	case http.StatusOK:

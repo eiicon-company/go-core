@@ -16,7 +16,7 @@ import (
 
 type (
 	// GCSDSN gs://data-bucket/path/
-	// 			  gs://data-bucket/path/?url=https://exampl.ecom:80
+	// gs://data-bucket/path/?url=https://exampl.ecom:80
 	GCSDSN struct {
 		Sess   *google.Credentials
 		Bucket string
@@ -39,7 +39,6 @@ func (dsn *GCSDSN) String(filename string) string {
 // URL returns https URL
 //
 // TODO: Get no auth or authed or private or public URL
-//
 func (dsn *GCSDSN) URL(filename string) string {
 	if dsn.PublicURL != nil {
 		u, _ := url.Parse(dsn.PublicURL.String())
@@ -119,7 +118,6 @@ func gcpSession() (*google.Credentials, error) {
 	ctx := context.Background()
 
 	// https://github.com/golang/oauth2/blob/master/google/default.go#L61
-	//
 	creds, err := google.FindDefaultCredentials(ctx, storage.ScopeFullControl)
 	if err != nil {
 		return nil, xerrors.Errorf("gcp session failed creation: %w", err)

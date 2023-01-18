@@ -23,9 +23,7 @@ var (
 )
 
 // PreloadByID assembles QueryMod with primary ID
-//
 // XXX: There is this code for compatibility
-//
 func PreloadByID(id int, loads ...qm.QueryMod) []qm.QueryMod {
 	mods := []qm.QueryMod{qm.Where("id = ?", id)}
 	mods = append(mods, loads...)
@@ -34,9 +32,7 @@ func PreloadByID(id int, loads ...qm.QueryMod) []qm.QueryMod {
 }
 
 // PreloadBy assembles QueryMod with where statements
-//
 // XXX: There is this code for compatibility
-//
 func PreloadBy(where []qm.QueryMod, loads ...qm.QueryMod) ([]qm.QueryMod, error) {
 	if len(where) == 0 {
 		return nil, xerrors.New("no queries")
@@ -46,9 +42,7 @@ func PreloadBy(where []qm.QueryMod, loads ...qm.QueryMod) ([]qm.QueryMod, error)
 }
 
 // Preloads assembles loads
-//
 // XXX: There is this code for compatibility
-//
 func Preloads(loads ...qm.QueryMod) []qm.QueryMod {
 	mods := []qm.QueryMod{}
 	mods = append(mods, loads...)
@@ -57,9 +51,7 @@ func Preloads(loads ...qm.QueryMod) []qm.QueryMod {
 }
 
 // DescPreloadBy assembles QueryMod with where statements
-//
 // XXX: There is this code for compatibility
-//
 func DescPreloadBy(where []qm.QueryMod, loads ...qm.QueryMod) ([]qm.QueryMod, error) {
 	if len(where) == 0 {
 		return nil, xerrors.New("no queries")
@@ -69,9 +61,7 @@ func DescPreloadBy(where []qm.QueryMod, loads ...qm.QueryMod) ([]qm.QueryMod, er
 }
 
 // DescPreloads assembles loads
-//
 // XXX: There is this code for compatibility
-//
 func DescPreloads(loads ...qm.QueryMod) []qm.QueryMod {
 	mods := []qm.QueryMod{DescOrder}
 	mods = append(mods, loads...)

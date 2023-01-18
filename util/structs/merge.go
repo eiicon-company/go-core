@@ -18,7 +18,6 @@ type (
 //
 // If you mind even a bit, you would be better to use
 // https://github.com/jinzhu/copier which will be overwritten everything.
-//
 func (t timeTransfomer) Transformer(typ reflect.Type) func(dst, src reflect.Value) error {
 	if typ == reflect.TypeOf(time.Time{}) {
 		return func(dst, src reflect.Value) error {
@@ -41,6 +40,10 @@ func Merge(dest interface{}, values ...interface{}) error {
 	data := make(map[string]interface{})
 
 	for _, value := range values {
+		if value == nil {
+			continue
+		}
+
 		v, _ := reflections.Items(value)
 		if err := mergo.Map(&data, v, mergo.WithTransformers(timeTransfomer{})); err != nil {
 			logger.E("merge.go Merge: %s", err)
@@ -55,8 +58,12 @@ func OverwriteMerge(dest interface{}, values ...interface{}) error {
 	data := make(map[string]interface{})
 
 	for _, value := range values {
+		if value == nil {
+			continue
+		}
+
 		v, _ := reflections.Items(value)
-		if err := mergo.MapWithOverwrite(&data, v, mergo.WithTransformers(timeTransfomer{})); err != nil {
+		if err := mergo.Map(&data, v, mergo.WithTransformers(timeTransfomer{})); err != nil {
 			logger.E("merge.go OverwriteMerge: %s", err)
 		}
 	}

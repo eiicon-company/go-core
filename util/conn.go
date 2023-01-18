@@ -17,9 +17,7 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/go-sql-driver/mysql"
 	dlmredis "github.com/gomodule/redigo/redis"
-	"github.com/mediocregopher/radix.v2/pool"
-	"github.com/mediocregopher/radix.v2/redis"
-	"github.com/mediocregopher/radix/v3"
+	radix "github.com/mediocregopher/radix/v3"
 	"github.com/olivere/elastic/v7"
 	proxy "github.com/shogo82148/go-sql-proxy"
 	"github.com/spf13/cast"
@@ -46,7 +44,6 @@ func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
 	// https://github.blog/2020-05-20-three-bugs-in-the-go-mysql-driver/
 	// Oh Gawd
 	// https://github.com/go-sql-driver/mysql/issues/1302#issuecomment-1019842712
-	//
 	db.SetConnMaxLifetime(time.Minute * 5) // https://github.com/go-sql-driver/mysql/issues/1120#issuecomment-636795680
 	db.SetMaxIdleConns(4)
 	db.SetMaxOpenConns(8)
@@ -72,7 +69,6 @@ func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
 // https://github.com/getsentry/sentry-ruby/issues/1674
 // https://develop.sentry.dev/sdk/performance/span-operations/#database
 // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
-//
 func DBSlowQuery(dialect string, period time.Duration) {
 	sql.Register(dialect, proxy.NewProxyContext(&mysql.MySQLDriver{}, &proxy.HooksContext{
 		PreExec: func(ctx context.Context, stmt *proxy.Stmt, args []driver.NamedValue) (interface{}, error) {
@@ -89,11 +85,16 @@ func DBSlowQuery(dialect string, period time.Duration) {
 					s.Description = stmt.QueryString
 
 					data := map[string]interface{}{}
-					for _, arg := range args {
+					for i, arg := range args {
+						if i > 50 {
+							break
+						}
+
 						k := arg.Name
 						if k == "" {
 							k = cast.ToString(arg.Ordinal)
 						}
+
 						data[k] = cast.ToString(arg.Value)
 					}
 					s.Data = data
@@ -119,11 +120,16 @@ func DBSlowQuery(dialect string, period time.Duration) {
 					s.Description = stmt.QueryString
 
 					data := map[string]interface{}{}
-					for _, arg := range args {
+					for i, arg := range args {
+						if i > 50 {
+							break
+						}
+
 						k := arg.Name
 						if k == "" {
 							k = cast.ToString(arg.Ordinal)
 						}
+
 						data[k] = cast.ToString(arg.Value)
 					}
 					s.Data = data
@@ -169,41 +175,7 @@ func ESConn(env Environment) (*elastic.Client, error) {
 }
 
 // RedisConn returns established connection
-// This is duplicated. use RedisV3Conn instead.
-func RedisConn(env Environment) (*pool.Pool, error) {
-	df := func(args ...interface{}) pool.DialFunc {
-		return func(network, addr string) (*redis.Client, error) {
-			client, err := redis.DialTimeout(network, addr, 5*time.Second)
-			if err != nil {
-				return nil, err
-			}
-			// select db
-			if err = client.Cmd("SELECT", args...).Err; err != nil {
-				client.Close()
-				return nil, err
-			}
-
-			return client, nil
-		}
-	}
-
-	dr, err := dsn.Redis(env.EnvString("RedisURI"))
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse redis dsn <%s>: %s", env.EnvString("RedisURI"), err)
-	}
-	p, err := pool.NewCustom("tcp", dr.HostPort, 10, df(dr.DB))
-	if err != nil {
-		return nil, fmt.Errorf("uninitialized redis client <%s>: %s", env.EnvString("RedisURI"), err)
-	}
-
-	msg := "[INFO] the redis connection established <%s>, version UNKNOWN"
-	logger.Printf(msg, env.EnvString("RedisURI"))
-
-	return p, err
-}
-
-// RedisV3Conn returns established connection
-func RedisV3Conn(env Environment) (*radix.Pool, error) {
+func RedisConn(env Environment) (*radix.Pool, error) {
 	uri := env.EnvString("RedisURI")
 
 	dr, err := dsn.Redis(uri)

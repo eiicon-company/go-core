@@ -42,8 +42,6 @@ func (t *SentryDevNullTransport) Flush(timeout time.Duration) bool {
 }
 
 // SentryLoggerIntegration filters no need stacktrace frames
-//
-//
 type SentryLoggerIntegration struct{}
 
 // Name ...

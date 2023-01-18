@@ -1,6 +1,5 @@
 // Package storage gonna be implementation
 // that stream io processing for memory performance.
-//
 package storage
 
 import (
