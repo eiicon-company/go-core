@@ -52,6 +52,17 @@ misspell:  ## Check misspelling to files except go files
 	fi
 
 
+format:  ## Run go formater
+	@go install golang.org/x/tools/cmd/goimports 2> /dev/null
+	@go install github.com/sqs/goreturns 2> /dev/null
+	@make format-target target="data/" &
+	@make format-target target="util/"
+
+
+format-target:  ## Run go formater: ${target}
+	goimports -w ${target}
+	goreturns -w ${target}
+
 circleci-validate:  ## Validate ./circleci/config.yml
 	circleci config validate
 
