@@ -85,11 +85,16 @@ func DBSlowQuery(dialect string, period time.Duration) {
 					s.Description = stmt.QueryString
 
 					data := map[string]interface{}{}
-					for _, arg := range args {
+					for i, arg := range args {
+						if i > 50 {
+							break
+						}
+
 						k := arg.Name
 						if k == "" {
 							k = cast.ToString(arg.Ordinal)
 						}
+
 						data[k] = cast.ToString(arg.Value)
 					}
 					s.Data = data
@@ -115,11 +120,16 @@ func DBSlowQuery(dialect string, period time.Duration) {
 					s.Description = stmt.QueryString
 
 					data := map[string]interface{}{}
-					for _, arg := range args {
+					for i, arg := range args {
+						if i > 50 {
+							break
+						}
+
 						k := arg.Name
 						if k == "" {
 							k = cast.ToString(arg.Ordinal)
 						}
+
 						data[k] = cast.ToString(arg.Value)
 					}
 					s.Data = data
