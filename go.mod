@@ -41,8 +41,12 @@ require (
 )
 
 require (
+	github.com/client9/misspell v0.3.4
 	github.com/spf13/cast v1.5.0
+	github.com/sqs/goreturns v0.0.0-20181028201513-538ac6014518
 	github.com/volatiletech/null/v8 v8.1.2
+	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
+	golang.org/x/tools v0.2.0
 )
 
 require (
@@ -66,9 +70,9 @@ require (
 	github.com/volatiletech/inflect v0.0.1 // indirect
 	github.com/volatiletech/strmangle v0.0.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
+	golang.org/x/mod v0.6.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
-	golang.org/x/tools v0.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221205194025-8222ab48f5fc // indirect
 	google.golang.org/protobuf v1.28.1 // indirect

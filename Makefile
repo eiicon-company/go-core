@@ -1,6 +1,12 @@
 .DEFAULT_GOAL := help
 
 SHELL := /bin/bash
+TOOL_BIN_DIR  ?= $(shell go env GOPATH)/bin
+GOLANGCI_LINT_VERSION := 1.47.3
+
+install-golangci-lint:  ## Install golangci-lint
+	@rm -f $(TOOL_BIN_DIR)/golangci-lint
+	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOL_BIN_DIR) v$(GOLANGCI_LINT_VERSION)
 
 
 gomodule:  ## Tidy up Golang dependencies, see https://github.com/golang/go/wiki/Modules
@@ -24,8 +30,7 @@ test:  ## Test to all of directories
 
 
 linter:  ## Golang completely all of style checking
-	@go get -v github.com/golangci/golangci-lint/cmd/golangci-lint 2> /dev/null
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	@test -f $(TOOL_BIN_DIR)/golangci-lint || make install-golangci-lint
 	@if [ "`golangci-lint run -c .golangci.yml --timeout 10m0s | tee /dev/stderr`" ]; then \
 			echo "^ linter errors!" && echo && exit 1; \
 	fi
