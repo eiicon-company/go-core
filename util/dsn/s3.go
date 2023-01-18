@@ -18,7 +18,7 @@ import (
 
 type (
 	// S3DSN s3://data-bucket/path/
-	// 			 s3://data-bucket/path/?url=https://exampl.ecom:80
+	// s3://data-bucket/path/?url=https://exampl.ecom:80
 	S3DSN struct {
 		Sess   *session.Session
 		Bucket string
