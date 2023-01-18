@@ -1,3 +1,4 @@
+//nolint:staticcheck
 package errs
 
 import (
@@ -53,7 +54,6 @@ func multi2grpc(err error) (*status.Status, bool) {
 }
 
 // GRPCError returns grpc status error
-//nolint:staticcheck
 func GRPCError(err error) error {
 	if err == nil {
 		return nil

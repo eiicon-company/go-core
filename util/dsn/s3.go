@@ -42,7 +42,6 @@ func (dsn *S3DSN) String(filename string) string {
 // URL returns https URL
 //
 // TODO: Get no auth or authed or private or public URL
-//
 func (dsn *S3DSN) URL(filename string) string {
 	if dsn.PublicURL != nil {
 		u, _ := url.Parse(dsn.PublicURL.String())

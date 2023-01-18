@@ -18,7 +18,6 @@ type (
 //
 // If you mind even a bit, you would be better to use
 // https://github.com/jinzhu/copier which will be overwritten everything.
-//
 func (t timeTransfomer) Transformer(typ reflect.Type) func(dst, src reflect.Value) error {
 	if typ == reflect.TypeOf(time.Time{}) {
 		return func(dst, src reflect.Value) error {
