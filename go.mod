@@ -42,6 +42,9 @@ require (
 
 require (
 	github.com/client9/misspell v0.3.4
+	github.com/fatih/structs v1.1.0
+	github.com/gigawattio/metaflector v0.0.0-20180317191240-d098812229a0
+	github.com/jinzhu/copier v0.3.5
 	github.com/spf13/cast v1.5.0
 	github.com/sqs/goreturns v0.0.0-20181028201513-538ac6014518
 	github.com/volatiletech/null/v8 v8.1.2
@@ -56,6 +59,7 @@ require (
 	cloud.google.com/go/iam v0.10.0 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0 // indirect
+	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/friendsofgo/errors v0.9.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
