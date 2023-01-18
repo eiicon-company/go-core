@@ -35,7 +35,7 @@ func TestTransformDataURIFunctionNoAttempt(t *testing.T) {
 	_, err := TransformDataURI(body, func( /*idx int, */ attr string) string {
 		return fmt.Sprintf("replaced-%s", attr)
 	})
-	if !xerrors.Is(err, ErrTransformNoAttempt) {
+	if !xerrors.Is(err, ErrTransformNoAttempt) { //nolint:staticcheck
 		t.Fatalf("must be returning ErrTransformNoAttempt error: %+#v", err)
 	}
 }
@@ -129,7 +129,7 @@ func TestTransformDataURIFromTwiceImages(t *testing.T) {
 	t.Logf("Return: %+#v", got)
 }
 
-// nolint:funlen
+//nolint:funlen
 func TestTransformDataURIFromEntireContent(t *testing.T) {
 	t.Helper()
 

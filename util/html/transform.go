@@ -21,7 +21,6 @@ var (
 
 // TransformDataURI gives transform method which can be used for html transformation
 // After that returns transformed HTML.
-//
 func TransformDataURI /*Transformer*/ (html string, transformer func( /*idx int, */ attr string) string) (string, error) {
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
