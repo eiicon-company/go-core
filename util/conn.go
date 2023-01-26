@@ -176,8 +176,11 @@ func ESConn(env Environment) (*elastic.Client, error) {
 
 // RedisConn returns established connection
 func RedisConn(env Environment) (*radix.Pool, error) {
-	uri := env.EnvString("RedisURI")
+	return SelectRedisConn(env.EnvString("RedisURI"))
+}
 
+// SelectRedisConn returns established connection
+func SelectRedisConn(uri string) (*radix.Pool, error) {
 	dr, err := dsn.Redis(uri)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse redis dsn <%s>: %s", uri, err)
