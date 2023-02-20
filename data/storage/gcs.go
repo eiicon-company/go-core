@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 	"time"
 
@@ -92,7 +91,7 @@ func (adp *gcsStorage) Read(ctx context.Context, filename string) ([]byte, error
 		}
 	}
 
-	data, err := ioutil.ReadAll(reader)
+	data, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, xerrors.Errorf("[F] gcs read failed: %w", err)
 	}

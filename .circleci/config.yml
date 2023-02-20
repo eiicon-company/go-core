@@ -2,7 +2,7 @@ version: 2.1
 
 references:
   go_image: &go_image
-    - image: cimg/go:1.18
+    - image: cimg/go:1.20
 
   default: &default
     working_directory: ~/go-core

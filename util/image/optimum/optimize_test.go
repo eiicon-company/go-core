@@ -1,7 +1,6 @@
 package optimum
 
 import (
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"testing"
@@ -9,7 +8,7 @@ import (
 
 func TestOptimizeALL(t *testing.T) {
 	if _, err := exec.LookPath(gifOptimizer); err == nil {
-		buf, err := ioutil.ReadFile(testGIF)
+		buf, err := os.ReadFile(testGIF)
 		if err != nil {
 			t.Fatalf("OptimizeGIF Error: file=%#+v: %+v", testGIF, err)
 		}
@@ -23,13 +22,13 @@ func TestOptimizeALL(t *testing.T) {
 			t.Fatalf("OptimizeGIF Error: file=%#+v something went wrong", testGIF)
 		}
 
-		_ = ioutil.WriteFile("test-optimize-compressed.gif", out, 0600)
+		_ = os.WriteFile("test-optimize-compressed.gif", out, 0600)
 	} else {
 		t.Logf("OptimizeGIF Skip: file=%#+v: %+v", testGIF, err)
 	}
 
 	if _, err := exec.LookPath(jpgOptimizer); err == nil {
-		buf, err := ioutil.ReadFile(testJPG)
+		buf, err := os.ReadFile(testJPG)
 		if err != nil {
 			t.Fatalf("OptimizeJPG Error: file=%#+v: %+v", testJPG, err)
 		}
@@ -43,13 +42,13 @@ func TestOptimizeALL(t *testing.T) {
 			t.Fatalf("OptimizeJPG Error: file=%#+v something went wrong", testGIF)
 		}
 
-		_ = ioutil.WriteFile("test-optimize-compressed.jpg", out, 0600)
+		_ = os.WriteFile("test-optimize-compressed.jpg", out, 0600)
 	} else {
 		t.Logf("OptimizeJPG Skip: file=%#+v: %+v", testJPG, err)
 	}
 
 	if _, err := exec.LookPath(pngOptimizer); err == nil {
-		buf, err := ioutil.ReadFile(testPNG)
+		buf, err := os.ReadFile(testPNG)
 		if err != nil {
 			t.Fatalf("OptimizePNG Error: file=%#+v: %+v", testPNG, err)
 		}
@@ -63,7 +62,7 @@ func TestOptimizeALL(t *testing.T) {
 			t.Fatalf("OptimizePNG Error: file=%#+v something went wrong", testGIF)
 		}
 
-		_ = ioutil.WriteFile("test-optimize-compressed.png", out, 0600)
+		_ = os.WriteFile("test-optimize-compressed.png", out, 0600)
 	} else {
 		t.Logf("OptimizePNG Skip: file=%#+v: %+v", testPNG, err)
 	}
@@ -88,7 +87,7 @@ func TestOptimizeGIF(t *testing.T) {
 		t.Fatalf("OptimizeGIF Error: file=%#+v something went wrong", testGIF)
 	}
 
-	_ = ioutil.WriteFile("compressed.gif", out, 0600)
+	_ = os.WriteFile("compressed.gif", out, 0600)
 }
 
 func TestOptimizeJPG(t *testing.T) {
@@ -110,7 +109,7 @@ func TestOptimizeJPG(t *testing.T) {
 		t.Fatalf("OptimizeJPG Error: file=%#+v something went wrong", testGIF)
 	}
 
-	_ = ioutil.WriteFile("compressed.jpg", out, 0600)
+	_ = os.WriteFile("compressed.jpg", out, 0600)
 }
 
 func TestOptimizePNG(t *testing.T) {
@@ -132,5 +131,5 @@ func TestOptimizePNG(t *testing.T) {
 		t.Fatalf("OptimizePNG Error: file=%#+v something went wrong", testGIF)
 	}
 
-	_ = ioutil.WriteFile("compressed.png", out, 0600)
+	_ = os.WriteFile("compressed.png", out, 0600)
 }
