@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -67,7 +66,7 @@ func (adp *s3Storage) Write(ctx context.Context, filename string, data []byte) e
 
 // Read returns file data from the s3
 func (adp *s3Storage) Read(ctx context.Context, filename string) ([]byte, error) {
-	file, err := ioutil.TempFile("", "s3storage")
+	file, err := os.CreateTemp("", "s3storage")
 	if err != nil {
 		return nil, xerrors.Errorf("[F] s3 read file failed: %w", err)
 	}
@@ -91,7 +90,7 @@ func (adp *s3Storage) Read(ctx context.Context, filename string) ([]byte, error)
 		}
 	}
 
-	data, err := ioutil.ReadAll(reader)
+	data, err := io.ReadAll(reader)
 
 	os.Remove(file.Name()) // TODO: defer
 	return data, err

@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -71,7 +70,7 @@ func (adp *fileStorage) Read(ctx context.Context, filename string) ([]byte, erro
 		}
 	}
 
-	return ioutil.ReadAll(reader)
+	return io.ReadAll(reader)
 }
 
 // Delete will delete file from the file systems.
