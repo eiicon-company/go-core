@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -125,9 +126,15 @@ func (adp *gcsStorage) Merge(ctx context.Context, filename string, data []byte) 
 
 // Files returns filename list which is traversing with glob from gcs storage.
 func (adp *gcsStorage) Files(ctx context.Context, ptn string) ([]string, error) {
-	g, err := glob.Compile(strings.TrimLeft(adp.dsn.Join(ptn), "/"))
+	base := strings.TrimLeft(adp.dsn.Join(ptn), "/")
+
+	g, err := glob.Compile(base)
 	if err != nil {
 		return nil, xerrors.Errorf("[F] gcs files pattern arg failed: %w", err)
+	}
+	prefix := strings.TrimSuffix(base, filepath.Base(base)) // XXX: Prefix setter is so fuzzy now.
+	if !strings.Contains(prefix, "/") {
+		prefix = ""
 	}
 
 	client, err := storage.NewClient(ctx)
@@ -136,7 +143,7 @@ func (adp *gcsStorage) Files(ctx context.Context, ptn string) ([]string, error) 
 	}
 
 	files := []string{}
-	it := client.Bucket(adp.dsn.Bucket).Objects(ctx, nil) // XXX: prefix, delim
+	it := client.Bucket(adp.dsn.Bucket).Objects(ctx, &storage.Query{Prefix: prefix})
 
 	for {
 		attrs, err := it.Next()
@@ -148,7 +155,7 @@ func (adp *gcsStorage) Files(ctx context.Context, ptn string) ([]string, error) 
 		}
 
 		if g.Match(attrs.Name) {
-			files = append(files, fmt.Sprintf("gs://%s/%s", attrs.Bucket, attrs.Name))
+			files = append(files, attrs.Name)
 		}
 	}
 
