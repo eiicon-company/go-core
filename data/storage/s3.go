@@ -6,9 +6,9 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
-	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -115,20 +115,27 @@ func (adp *s3Storage) Merge(ctx context.Context, filename string, data []byte) e
 
 // Files returns filename list which is traversing with glob from s3 storage.
 func (adp *s3Storage) Files(ctx context.Context, ptn string) ([]string, error) {
-	g, err := glob.Compile(strings.TrimLeft(adp.dsn.Join(ptn), "/"))
+	base := strings.TrimLeft(adp.dsn.Join(ptn), "/")
+
+	g, err := glob.Compile(base)
 	if err != nil {
 		return []string{}, err
+	}
+	prefix := strings.TrimSuffix(base, filepath.Base(base)) // XXX: Prefix setter is so fuzzy now.
+	if !strings.Contains(prefix, "/") {
+		prefix = ""
 	}
 
 	i, files := 0, []string{}
 	err = s3.New(adp.dsn.Sess).ListObjectsPages(&s3.ListObjectsInput{
+		Prefix: aws.String(prefix),
 		Bucket: aws.String(adp.dsn.Bucket),
 	}, func(p *s3.ListObjectsOutput, last bool) (shouldContinue bool) {
 		i++
 
 		for _, obj := range p.Contents {
 			if g.Match(*obj.Key) {
-				files = append(files, fmt.Sprintf("s3://%s/%s", *p.Name, *obj.Key))
+				files = append(files, *obj.Key)
 			}
 		}
 

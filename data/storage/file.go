@@ -95,12 +95,7 @@ func (adp *fileStorage) Files(ctx context.Context, ptn string) ([]string, error)
 		return []string{}, err
 	}
 
-	files := []string{}
-	for _, file := range matches {
-		files = append(files, fmt.Sprintf("file://%s", file))
-	}
-
-	return files, nil
+	return matches, nil
 }
 
 // URL returns a Public URL
