@@ -34,6 +34,7 @@ func (d *DLM) Close() error {
 	return nil
 }
 
+// Exists checks a data is existence or not.
 func (d *DLM) Exists(name string) (bool, error) {
 	conn := d.Pool.Get()
 	defer conn.Close()
