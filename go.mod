@@ -33,7 +33,7 @@ require (
 	github.com/volatiletech/sqlboiler/v4 v4.7.1
 	github.com/yosssi/gohtml v0.0.0-20200519115854-476f5b4b8047
 	go.uber.org/dig v1.10.0
-	golang.org/x/net v0.1.0 // indirect
+	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2
 	google.golang.org/api v0.103.0
@@ -71,8 +71,8 @@ require (
 	github.com/volatiletech/strmangle v0.0.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/mod v0.6.0 // indirect
-	golang.org/x/sys v0.1.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221205194025-8222ab48f5fc // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
