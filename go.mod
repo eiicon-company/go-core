@@ -9,7 +9,7 @@ require (
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.38.12
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
-	github.com/getsentry/sentry-go v0.10.0
+	github.com/getsentry/sentry-go v0.24.0
 	github.com/go-redsync/redsync v1.4.2
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gobwas/glob v0.2.3
@@ -24,7 +24,7 @@ require (
 	github.com/imdario/mergo v0.3.12
 	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible
 	github.com/mediocregopher/radix/v3 v3.7.0
-	github.com/microcosm-cc/bluemonday v1.0.16
+	github.com/microcosm-cc/bluemonday v1.0.23
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/oleiade/reflections v1.0.1
 	github.com/olivere/elastic/v7 v7.0.23
@@ -33,7 +33,7 @@ require (
 	github.com/volatiletech/sqlboiler/v4 v4.7.1
 	github.com/yosssi/gohtml v0.0.0-20200519115854-476f5b4b8047
 	go.uber.org/dig v1.10.0
-	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2
 	google.golang.org/api v0.103.0
@@ -46,7 +46,7 @@ require (
 	github.com/sqs/goreturns v0.0.0-20181028201513-538ac6014518
 	github.com/volatiletech/null/v8 v8.1.2
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
-	golang.org/x/tools v0.2.0
+	golang.org/x/tools v0.6.0
 )
 
 require (
@@ -70,10 +70,10 @@ require (
 	github.com/volatiletech/inflect v0.0.1 // indirect
 	github.com/volatiletech/strmangle v0.0.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/mod v0.6.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221205194025-8222ab48f5fc // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
+	google.golang.org/protobuf v1.29.1 // indirect
 )
