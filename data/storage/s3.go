@@ -31,7 +31,7 @@ type s3Storage struct {
 }
 
 // Write will create file into the s3.
-func (adp *s3Storage) Write(ctx context.Context, filename string, data []byte) error {
+func (adp *s3Storage) Write(_ context.Context, filename string, data []byte) error {
 	var reader io.Reader = bytes.NewReader(data)
 
 	if gzipPtn.MatchString(filename) {
@@ -65,7 +65,7 @@ func (adp *s3Storage) Write(ctx context.Context, filename string, data []byte) e
 }
 
 // Read returns file data from the s3
-func (adp *s3Storage) Read(ctx context.Context, filename string) ([]byte, error) {
+func (adp *s3Storage) Read(_ context.Context, filename string) ([]byte, error) {
 	file, err := os.CreateTemp("", "s3storage")
 	if err != nil {
 		return nil, xerrors.Errorf("[F] s3 read file failed: %w", err)
@@ -97,7 +97,7 @@ func (adp *s3Storage) Read(ctx context.Context, filename string) ([]byte, error)
 }
 
 // Delete will delete file from the file systems.
-func (adp *s3Storage) Delete(ctx context.Context, filename string) error {
+func (adp *s3Storage) Delete(_ context.Context, filename string) error {
 	_, err := s3.New(adp.dsn.Sess).DeleteObject(&s3.DeleteObjectInput{
 		Bucket: aws.String(adp.dsn.Bucket),
 		Key:    aws.String(adp.dsn.Join(filename)),
@@ -114,7 +114,7 @@ func (adp *s3Storage) Merge(ctx context.Context, filename string, data []byte) e
 }
 
 // Files returns filename list which is traversing with glob from s3 storage.
-func (adp *s3Storage) Files(ctx context.Context, ptn string) ([]string, error) {
+func (adp *s3Storage) Files(_ context.Context, ptn string) ([]string, error) {
 	base := strings.TrimLeft(adp.dsn.Join(ptn), "/")
 
 	g, err := glob.Compile(base)
@@ -150,17 +150,17 @@ func (adp *s3Storage) Files(ctx context.Context, ptn string) ([]string, error) {
 }
 
 // URL returns Public URL
-func (adp *s3Storage) URL(ctx context.Context, filename string) string {
+func (adp *s3Storage) URL(_ context.Context, filename string) string {
 	return adp.dsn.URL(filename)
 }
 
 // String returns a URI
-func (adp *s3Storage) String(ctx context.Context, filename string) string {
+func (adp *s3Storage) String(_ context.Context, filename string) string {
 	return adp.dsn.String(filename)
 }
 
 // PresignedUploadURL returns a presigned upload URI
-func (adp *s3Storage) PresignedUploadURL(ctx context.Context, filename string, expire time.Duration) (string, error) {
+func (adp *s3Storage) PresignedUploadURL(_ context.Context, filename string, expire time.Duration) (string, error) {
 	req, _ := s3.New(adp.dsn.Sess).PutObjectRequest(&s3.PutObjectInput{
 		Bucket: aws.String(adp.dsn.Bucket),
 		Key:    aws.String(adp.dsn.Join(filename)),
@@ -169,7 +169,7 @@ func (adp *s3Storage) PresignedUploadURL(ctx context.Context, filename string, e
 }
 
 // PresignedDownloadURL returns a presigned download URI
-func (adp *s3Storage) PresignedDownloadURL(ctx context.Context, filename string, expire time.Duration) (string, error) {
+func (adp *s3Storage) PresignedDownloadURL(_ context.Context, filename string, expire time.Duration) (string, error) {
 	req, _ := s3.New(adp.dsn.Sess).GetObjectRequest(&s3.GetObjectInput{
 		Bucket: aws.String(adp.dsn.Bucket),
 		Key:    aws.String(adp.dsn.Join(filename)),

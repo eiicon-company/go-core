@@ -162,7 +162,7 @@ func (c *command) DeleteDocument(ctx context.Context, name string, id int) (*Res
 	return c.do(ctx, fn)
 }
 
-func (c *command) ListIndexNames(ctx context.Context) ([]string, error) {
+func (c *command) ListIndexNames(_ context.Context) ([]string, error) {
 	return c.ESClient.IndexNames()
 }
 

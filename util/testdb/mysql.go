@@ -67,11 +67,7 @@ func (m *mysqlTester) Teardown() error {
 		}
 	}
 
-	if err := m.dropDB(); err != nil {
-		return err
-	}
-
-	return nil
+	return m.dropDB()
 }
 
 // StdinCommand execs database

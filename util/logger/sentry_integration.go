@@ -37,7 +37,7 @@ func (t *SentryDevNullTransport) SendEvent(event *sentry.Event) {
 }
 
 // Flush ...
-func (t *SentryDevNullTransport) Flush(timeout time.Duration) bool {
+func (t *SentryDevNullTransport) Flush(_ time.Duration) bool {
 	return true
 }
 
@@ -54,7 +54,7 @@ func (it *SentryLoggerIntegration) SetupOnce(client *sentry.Client) {
 	client.AddEventProcessor(it.processor)
 }
 
-func (it *SentryLoggerIntegration) processor(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
+func (it *SentryLoggerIntegration) processor(event *sentry.Event, _ *sentry.EventHint) *sentry.Event {
 	for _, thread := range event.Threads {
 		if thread.Stacktrace == nil {
 			continue

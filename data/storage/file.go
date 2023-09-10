@@ -24,7 +24,7 @@ type fileStorage struct {
 }
 
 // Write will create file into the file systems.
-func (adp *fileStorage) Write(ctx context.Context, filename string, data []byte) error {
+func (adp *fileStorage) Write(_ context.Context, filename string, data []byte) error {
 	filename = adp.dsn.Join(filename)
 	folder := filepath.Dir(filename)
 
@@ -53,7 +53,7 @@ func (adp *fileStorage) Write(ctx context.Context, filename string, data []byte)
 }
 
 // Read returns file data from the file systems.
-func (adp *fileStorage) Read(ctx context.Context, filename string) ([]byte, error) {
+func (adp *fileStorage) Read(_ context.Context, filename string) ([]byte, error) {
 	var reader io.ReadCloser
 
 	reader, err := os.Open(adp.dsn.Join(filename))
@@ -74,7 +74,7 @@ func (adp *fileStorage) Read(ctx context.Context, filename string) ([]byte, erro
 }
 
 // Delete will delete file from the file systems.
-func (adp *fileStorage) Delete(ctx context.Context, filename string) error {
+func (adp *fileStorage) Delete(_ context.Context, filename string) error {
 	path := adp.dsn.Join(filename)
 	return os.Remove(path)
 }
@@ -88,7 +88,7 @@ func (adp *fileStorage) Merge(ctx context.Context, filename string, data []byte)
 }
 
 // Files returns filename list which is traversing with glob from filesystem.
-func (adp *fileStorage) Files(ctx context.Context, ptn string) ([]string, error) {
+func (adp *fileStorage) Files(_ context.Context, ptn string) ([]string, error) {
 	matches, err := filepath.Glob(adp.dsn.Join(ptn))
 	if err != nil {
 		logger.Printf("Failed to retrieve list files %s", err)
@@ -99,12 +99,12 @@ func (adp *fileStorage) Files(ctx context.Context, ptn string) ([]string, error)
 }
 
 // URL returns a Public URL
-func (adp *fileStorage) URL(ctx context.Context, filename string) string {
+func (adp *fileStorage) URL(_ context.Context, filename string) string {
 	return adp.dsn.URL(filename)
 }
 
 // String returns a URI
-func (adp *fileStorage) String(ctx context.Context, filename string) string {
+func (adp *fileStorage) String(_ context.Context, filename string) string {
 	return adp.dsn.String(filename)
 }
 

@@ -2,7 +2,7 @@
 
 SHELL := /bin/bash
 TOOL_BIN_DIR  ?= $(shell go env GOPATH)/bin
-GOLANGCI_LINT_VERSION := 1.47.3
+GOLANGCI_LINT_VERSION := 1.54.2
 
 install-golangci-lint:  ## Install golangci-lint
 	@rm -f $(TOOL_BIN_DIR)/golangci-lint
