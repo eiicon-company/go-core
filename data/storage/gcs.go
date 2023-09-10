@@ -163,12 +163,12 @@ func (adp *gcsStorage) Files(ctx context.Context, ptn string) ([]string, error) 
 }
 
 // URL returns Public URL
-func (adp *gcsStorage) URL(ctx context.Context, filename string) string {
+func (adp *gcsStorage) URL(_ context.Context, filename string) string {
 	return adp.dsn.URL(filename)
 }
 
 // String returns a URI
-func (adp *gcsStorage) String(ctx context.Context, filename string) string {
+func (adp *gcsStorage) String(_ context.Context, filename string) string {
 	return adp.dsn.String(filename)
 }
 
