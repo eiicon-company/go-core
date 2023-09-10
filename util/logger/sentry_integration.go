@@ -15,7 +15,7 @@ type SentryDevNullTransport struct{}
 // Configure ...
 func (t *SentryDevNullTransport) Configure(options sentry.ClientOptions) {
 	dsn, _ := sentry.NewDsn(options.Dsn)
-	fmt.Println("[FakeSentry] Stores Endpoint:", dsn.StoreAPIURL())
+	fmt.Println("[FakeSentry] Stores Endpoint:", dsn.GetAPIURL().String())
 	fmt.Println("[FakeSentry] Headers:", dsn.RequestHeaders())
 }
 
