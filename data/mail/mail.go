@@ -16,6 +16,7 @@ type (
 		Subject string
 		Text    []byte
 		HTML    []byte
+		Headers map[string][]string
 	}
 
 	// Mail provides interface for sends some of kinda E-Mail.
