@@ -22,6 +22,7 @@ func (m *smtpMail) Send(data *Data) error {
 	e.Cc = data.Cc
 	e.From = data.From
 	e.Subject = data.Subject
+	e.Headers = data.Headers
 	if data.Text != nil {
 		e.Text = data.Text
 	}
