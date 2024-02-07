@@ -49,8 +49,8 @@ func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
 	//
 	// https://github.com/go-sql-driver/mysql?tab=readme-ov-file#important-settings
 	db.SetConnMaxLifetime(time.Minute * 3)
-	db.SetMaxIdleConns(5)
-	db.SetMaxOpenConns(5)
+	db.SetMaxIdleConns(6)
+	db.SetMaxOpenConns(6)
 
 	// make sure connection available
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
