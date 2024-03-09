@@ -18,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/gobwas/glob"
+	"github.com/h2non/filetype"
 
 	"github.com/eiicon-company/go-core/util"
 	"github.com/eiicon-company/go-core/util/dsn"
@@ -49,12 +50,20 @@ func (adp *s3Storage) Write(_ context.Context, filename string, data []byte) err
 		}()
 	}
 
+	// Try to detect content type
+	// TODO: Someday, we should carry mime type via an argument.
+	contentType := ""
+	if kind, err := filetype.Match(data); err == nil {
+		contentType = kind.MIME.Value
+	}
+
 	manager := s3manager.NewUploader(adp.dsn.Sess)
 	_, err := manager.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(adp.dsn.Bucket),
-		Key:    aws.String(adp.dsn.Join(filename)),
-		ACL:    aws.String(adp.dsn.ACL),
-		Body:   reader,
+		Bucket:      aws.String(adp.dsn.Bucket),
+		Key:         aws.String(adp.dsn.Join(filename)),
+		ACL:         aws.String(adp.dsn.ACL),
+		ContentType: aws.String(contentType),
+		Body:        reader,
 	})
 
 	if err != nil {
