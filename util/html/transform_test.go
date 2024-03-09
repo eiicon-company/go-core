@@ -105,7 +105,7 @@ func TestTransformDataURIFromTwiceImages(t *testing.T) {
 		t.Fatalf("must be returning non-nil error: %+#v", err)
 	}
 
-	doc.Find(selectorDataURI).Each(func(i int, img *goquery.Selection) {
+	doc.Find(selectorDataURI).Each(func(_ int, img *goquery.Selection) {
 		img.SetAttr("src", "replaced")
 	})
 
@@ -140,7 +140,7 @@ func TestTransformDataURIFromEntireContent(t *testing.T) {
 		t.Fatalf("must be returning non-nil error: %+#v", err)
 	}
 
-	doc.Find(selectorDataURI).Each(func(i int, img *goquery.Selection) {
+	doc.Find(selectorDataURI).Each(func(_ int, img *goquery.Selection) {
 		img.SetAttr("src", "replaced")
 	})
 

@@ -29,7 +29,7 @@ func TransformDataURI /*Transformer*/ (html string, transformer func( /*idx int,
 
 	attempt := 0
 
-	doc.Find(selectorDataURI).Each(func(i int, img *goquery.Selection) {
+	doc.Find(selectorDataURI).Each(func(_ int, img *goquery.Selection) {
 		attr, ok := img.Attr("src")
 		if !ok {
 			logger.W("src attribute does not exists. It would be goquery matter")

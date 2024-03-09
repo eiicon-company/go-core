@@ -139,7 +139,7 @@ func (adp *s3Storage) Files(_ context.Context, ptn string) ([]string, error) {
 	err = s3.New(adp.dsn.Sess).ListObjectsPages(&s3.ListObjectsInput{
 		Prefix: aws.String(prefix),
 		Bucket: aws.String(adp.dsn.Bucket),
-	}, func(p *s3.ListObjectsOutput, last bool) (shouldContinue bool) {
+	}, func(p *s3.ListObjectsOutput, _ bool) (shouldContinue bool) {
 		i++
 
 		for _, obj := range p.Contents {
