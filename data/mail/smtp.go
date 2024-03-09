@@ -39,8 +39,8 @@ func (m *smtpMail) Send(data *Data) error {
 	}
 
 	cfg := &tls.Config{
-		InsecureSkipVerify: true,
+		InsecureSkipVerify: true, //#nosec G402
 		ServerName:         m.dsn.TLSServer,
-	} // #nosec
+	}
 	return e.SendWithTLS(m.dsn.Addr, auth, cfg)
 }
