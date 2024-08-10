@@ -20,7 +20,7 @@ func Optimize(buf []byte) ([]byte, error) {
 
 	mime := mimetype.Detect(buf)
 	if mime == nil {
-		return nil, xerrors.Errorf("ext %v is not supported")
+		return nil, xerrors.Errorf("file is not supported")
 	}
 
 	switch mime.Extension() {
