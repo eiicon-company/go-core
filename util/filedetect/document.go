@@ -4,6 +4,7 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 )
 
+// Mime documents
 const (
 	MimeDoc  = "application/msword"
 	MimeDocx = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"

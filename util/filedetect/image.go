@@ -4,6 +4,7 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 )
 
+// Mime images
 const (
 	MimeJpeg     = "image/jpeg"
 	MimeJpeg2000 = "image/jp2"
