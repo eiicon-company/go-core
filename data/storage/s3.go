@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/gobwas/glob"
 	"github.com/h2non/filetype"
 
@@ -53,8 +54,11 @@ func (adp *s3Storage) Write(_ context.Context, filename string, data []byte) err
 	// Try to detect content type
 	// TODO: Someday, we should carry mime type via an argument.
 	contentType := ""
-	if kind, err := filetype.Match(data); err == nil {
-		contentType = kind.MIME.Value
+	if mime := mimetype.Detect(data); mime != nil {
+		contentType = mime.String() // XXX: Better
+	}
+	if kind, err := filetype.Match(data); contentType == "" && err == nil {
+		contentType = kind.MIME.Value // XXX: Some of undetected to MSDocuments.
 	}
 
 	manager := s3manager.NewUploader(adp.dsn.Sess)
