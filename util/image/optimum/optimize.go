@@ -6,29 +6,31 @@ import (
 	"os/exec"
 
 	"github.com/codeskyblue/go-sh"
-	"github.com/h2non/filetype"
+	"github.com/gabriel-vasile/mimetype"
 	"golang.org/x/xerrors"
+
+	"github.com/eiicon-company/go-core/util/filedetect"
 )
 
 // Optimize reduce image size
 func Optimize(buf []byte) ([]byte, error) {
-	if !filetype.IsImage(buf) {
+	if !filedetect.IsImage(buf) {
 		return nil, xerrors.New("file is not an image")
 	}
 
-	kind, err := filetype.Match(buf)
-	if err != nil {
-		return nil, xerrors.Errorf("ext %v is not supported: %+v", kind, err)
+	mime := mimetype.Detect(buf)
+	if mime == nil {
+		return nil, xerrors.Errorf("ext %v is not supported")
 	}
 
-	switch kind.Extension {
+	switch mime.Extension() {
 	default:
-		return nil, xerrors.Errorf("ext %s is not supported", kind.Extension)
-	case "jpeg", "jpg":
+		return nil, xerrors.Errorf("ext %s is not supported", mime.Extension())
+	case ".jpeg", ".jpg":
 		return OptimizeJPG(buf)
-	case "gif":
+	case ".gif":
 		return OptimizeGIF(buf)
-	case "png":
+	case ".png":
 		return OptimizePNG(buf)
 	}
 }
