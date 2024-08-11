@@ -1,4 +1,5 @@
 // Package errs ...
+//
 //nolint:staticcheck
 package errs
 
