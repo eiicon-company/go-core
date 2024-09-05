@@ -45,10 +45,19 @@ func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
 			otelsql.SpanOptions{
 				SpanFilter: func(ctx context.Context, method otelsql.Method, query string, args []driver.NamedValue) bool {
 					span := trace.SpanFromContext(ctx)
-					if !span.IsRecording() || !span.SpanContext().IsValid() {
+					spanContext := span.SpanContext()
+
+					switch method {
+					case otelsql.MethodConnQuery: // Method = "sql.conn.query"
+						return false
+					case otelsql.MethodConnResetSession: // Method = "sql.conn.reset_session"
+						return false
+					case otelsql.MethodRows: // Method = "sql.rows"
 						return false
 					}
-					return true
+
+					// Check if the span is recording and if it's not a root span (i.e., it has a valid parent)
+					return spanContext.IsValid()
 				},
 			}),
 	)
