@@ -14,6 +14,7 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/XSAM/otelsql"
 	"github.com/getsentry/sentry-go"
@@ -39,7 +40,18 @@ func DBConn(dialect string, env Environment) (*sql.DB, error) {
 func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
 	db, err := otelsql.Open(dialect, dsn, otelsql.WithAttributes(
 		semconv.DBSystemMySQL,
-	))
+	),
+		otelsql.WithSpanOptions(
+			otelsql.SpanOptions{
+				SpanFilter: func(ctx context.Context, method otelsql.Method, query string, args []driver.NamedValue) bool {
+					span := trace.SpanFromContext(ctx)
+					if !span.IsRecording() || !span.SpanContext().IsValid() {
+						return false
+					}
+					return true
+				},
+			}),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("it was unable to connect the DB. %s", err)
 	}
