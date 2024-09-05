@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigquery"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 
 	"github.com/XSAM/otelsql"
 	"github.com/getsentry/sentry-go"
@@ -20,6 +21,7 @@ import (
 	dlmredis "github.com/gomodule/redigo/redis"
 	radix "github.com/mediocregopher/radix/v3"
 	"github.com/olivere/elastic/v7"
+	"github.com/olivere/elastic/v7/trace/opentelemetry"
 	proxy "github.com/shogo82148/go-sql-proxy"
 	"github.com/spf13/cast"
 
@@ -35,7 +37,9 @@ func DBConn(dialect string, env Environment) (*sql.DB, error) {
 
 // SelectDBConn can choose db connection
 func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
-	db, err := otelsql.Open(dialect, dsn)
+	db, err := otelsql.Open(dialect, dsn, otelsql.WithAttributes(
+		semconv.DBSystemMySQL,
+	))
 	if err != nil {
 		return nil, fmt.Errorf("it was unable to connect the DB. %s", err)
 	}
@@ -152,7 +156,10 @@ func DBSlowQuery(dialect string, period time.Duration) {
 // ESConn returns established connection
 func ESConn(env Environment) (*elastic.Client, error) {
 	var op []elastic.ClientOptionFunc
-	op = append(op, elastic.SetHttpClient(&http.Client{Timeout: 30 * time.Second}))
+	op = append(op, elastic.SetHttpClient(&http.Client{
+		Timeout:   30 * time.Second,
+		Transport: opentelemetry.NewTransport(),
+	}))
 	op = append(op, elastic.SetURL(env.EnvString("ESURL")))
 	op = append(op, elastic.SetSniff(true))
 	op = append(op, elastic.SetHealthcheck(true))
