@@ -14,6 +14,7 @@ import (
 
 	"cloud.google.com/go/bigquery"
 
+	"github.com/XSAM/otelsql"
 	"github.com/getsentry/sentry-go"
 	"github.com/go-sql-driver/mysql"
 	dlmredis "github.com/gomodule/redigo/redis"
@@ -34,7 +35,7 @@ func DBConn(dialect string, env Environment) (*sql.DB, error) {
 
 // SelectDBConn can choose db connection
 func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
-	db, err := sql.Open(dialect, dsn)
+	db, err := otelsql.Open(dialect, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("it was unable to connect the DB. %s", err)
 	}
