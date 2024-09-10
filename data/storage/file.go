@@ -123,7 +123,7 @@ func (adp *fileStorage) gzip(file io.Writer, data []byte) {
 	gz := gzip.NewWriter(file)
 	defer gz.Close()
 	if _, err := gz.Write(data); err != nil {
-		logger.E("file gzip: %s", err)
+		logger.Errorf("file gzip: %s", err)
 	}
 
 }
@@ -132,6 +132,6 @@ func (adp *fileStorage) gzip(file io.Writer, data []byte) {
 func (adp *fileStorage) plain(file io.WriteCloser, data []byte) {
 	defer file.Close()
 	if _, err := file.Write(data); err != nil {
-		logger.E("file plain: %s", err)
+		logger.Errorf("file plain: %s", err)
 	}
 }

@@ -60,7 +60,7 @@ func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
 	}
 
 	var ver string
-	logger.D("%s", db.QueryRow("SELECT @@version").Scan(&ver))
+	logger.Debugf("%s", db.QueryRow("SELECT @@version").Scan(&ver))
 
 	msg := "[INFO] the mysql connection established <%s>, version %s"
 	logger.Printf(msg, strings.Join(strings.Split(dsn, "@")[1:], ""), ver)

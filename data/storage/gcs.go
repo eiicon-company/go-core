@@ -48,7 +48,7 @@ func (adp *gcsStorage) Write(ctx context.Context, filename string, data []byte) 
 		go func() {
 			gz := gzip.NewWriter(writer)
 			if _, err := io.Copy(gz, bytes.NewReader(data)); err != nil {
-				logger.E("[F] gcs write gzip failed: %s", err)
+				logger.ErrorfWithContext(ctx, "[F] gcs write gzip failed: %s", err)
 			}
 
 			gz.Close()

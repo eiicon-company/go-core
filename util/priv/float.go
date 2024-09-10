@@ -13,8 +13,8 @@ import (
 func MustFloat(unk interface{}) float64 {
 	v, err := ToFloat(unk)
 	if err != nil {
-		msg := "[WARN] colud not cast to float64"
-		logger.Println(msg, err.Error())
+		msg := "[WARN] colud not cast to float64: %s\n"
+		logger.Printf(msg, err.Error())
 	}
 	return v
 }

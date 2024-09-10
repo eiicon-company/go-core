@@ -32,7 +32,7 @@ type s3Storage struct {
 }
 
 // Write will create file into the s3.
-func (adp *s3Storage) Write(_ context.Context, filename string, data []byte) error {
+func (adp *s3Storage) Write(ctx context.Context, filename string, data []byte) error {
 	var reader io.Reader = bytes.NewReader(data)
 
 	if gzipPtn.MatchString(filename) {
@@ -42,7 +42,7 @@ func (adp *s3Storage) Write(_ context.Context, filename string, data []byte) err
 		go func() {
 			gz := gzip.NewWriter(writer)
 			if _, err := io.Copy(gz, bytes.NewReader(data)); err != nil {
-				logger.E("[F] s3 gzip write: %s", err)
+				logger.ErrorfWithContext(ctx, "[F] s3 gzip write: %s", err)
 			}
 
 			gz.Close()
