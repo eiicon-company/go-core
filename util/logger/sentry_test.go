@@ -2,12 +2,44 @@ package logger
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 )
+
+func TestSentryBacktrace(t *testing.T) {
+	t.Helper()
+
+	t.Run("without context", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		setup(out)
+		Printf("abcdefg")
+		t.Log(out.String())
+		// must match with line number of calling `Printf("abcdefg")`
+		re := regexp.MustCompile(`\b20\b`)
+		if !re.Match(out.Bytes()) {
+			t.Errorf("Missmatch caller line number: %s", out.String())
+		}
+		out.Reset()
+	})
+
+	t.Run("with context", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		setup(out)
+		PrintfWithContext(context.Background(), "abcdefg")
+		t.Log(out.String())
+		// must match with line number of calling `PrintfWithContext(context.Background(), "abcdefg")`
+		re := regexp.MustCompile(`\b33\b`)
+		if !re.Match(out.Bytes()) {
+			t.Errorf("Missmatch caller line number: %s", out.String())
+		}
+		out.Reset()
+	})
+}
 
 func TestSentryNoLevel(t *testing.T) {
 	t.Helper()
@@ -15,7 +47,7 @@ func TestSentryNoLevel(t *testing.T) {
 	out := &bytes.Buffer{}
 	setup(out)
 
-	Println("abcdefg")
+	Printf("abcdefg")
 	if !strings.HasSuffix(out.String(), "abcdefg\n") {
 		t.Errorf("Miss match value: %s", out.String())
 	}
@@ -43,7 +75,7 @@ func TestSentryPanic(t *testing.T) {
 		}
 	}()
 
-	Panicln("nonononon")
+	Panicf("nonononon")
 }
 
 func TestSentryCritical(t *testing.T) {
@@ -52,7 +84,7 @@ func TestSentryCritical(t *testing.T) {
 	out := &bytes.Buffer{}
 	setup(out)
 
-	C("ldkdkdkdks")
+	Criticalf("ldkdkdkdks")
 
 	if !strings.HasSuffix(out.String(), "ldkdkdkdks\n") {
 		t.Errorf("Miss match value: %s", out.String())
@@ -69,7 +101,7 @@ func TestSentryError(t *testing.T) {
 	out := &bytes.Buffer{}
 	setup(out)
 
-	E("lkerja;we")
+	Errorf("lkerja;we")
 
 	if !strings.HasSuffix(out.String(), "lkerja;we\n") {
 		t.Errorf("Miss match value: %s", out.String())
@@ -86,7 +118,7 @@ func TestSentryWarn(t *testing.T) {
 	out := &bytes.Buffer{}
 	setup(out)
 
-	W("jrlkaefj")
+	Warnf("jrlkaefj")
 
 	if !strings.HasSuffix(out.String(), "jrlkaefj\n") {
 		t.Errorf("Miss match value: %s", out.String())
@@ -103,7 +135,7 @@ func TestSentryInfo(t *testing.T) {
 	out := &bytes.Buffer{}
 	setup(out)
 
-	Infoln("abcdefg")
+	Infof("abcdefg")
 	if !strings.HasSuffix(out.String(), "abcdefg\n") {
 		t.Errorf("Miss match value: %s", out.String())
 	}
@@ -120,7 +152,7 @@ func TestSentryDebug(t *testing.T) {
 	setup(out)
 
 	isDebug = true
-	D("040itaokwp")
+	Debugf("040itaokwp")
 
 	if !strings.HasSuffix(out.String(), "040itaokwp\n") {
 		t.Errorf("Miss match value: %s", out.String())
@@ -138,7 +170,7 @@ func TestSentryTODO(t *testing.T) {
 	out := &bytes.Buffer{}
 	setup(out)
 
-	T("lk2j3wr")
+	Todof("lk2j3wr")
 
 	if !strings.HasSuffix(out.String(), "lk2j3wr\n") {
 		t.Errorf("Miss match value: %s", out.String())
