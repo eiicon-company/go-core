@@ -17,6 +17,7 @@ type numericType interface {
 		~float32 | ~float64
 }
 
+// Int32 returns ...
 func Int32[FromType numericType](value FromType) int32 {
 	i, err := as.Int32(value)
 	if err != nil {
@@ -29,6 +30,7 @@ func Int32[FromType numericType](value FromType) int32 {
 	return i
 }
 
+// Int returns ...
 func Int[FromType numericType](value FromType) int {
 	i, err := as.Int(value)
 	if err != nil {
@@ -41,6 +43,7 @@ func Int[FromType numericType](value FromType) int {
 	return i
 }
 
+// Int64 returns ...
 func Int64[FromType numericType](value FromType) int64 {
 	i, err := as.Int64(value)
 	if err != nil {
