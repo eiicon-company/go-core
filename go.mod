@@ -42,6 +42,7 @@ require (
 require (
 	github.com/client9/misspell v0.3.4
 	github.com/gabriel-vasile/mimetype v1.4.5
+	github.com/lunemec/as v1.1.2
 	github.com/spf13/cast v1.6.0
 	github.com/sqs/goreturns v0.0.0-20181028201513-538ac6014518
 	github.com/volatiletech/null/v8 v8.1.2
@@ -92,6 +93,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.22.0 // indirect
 	go.opentelemetry.io/otel/trace v1.22.0 // indirect
 	golang.org/x/crypto v0.25.0 // indirect
+	golang.org/x/exp v0.0.0-20221031165847-c99f073a8326 // indirect
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
