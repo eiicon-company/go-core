@@ -1,5 +1,6 @@
 // Package logger ...
-package logger //nolint:govet
+//nolint:govet
+package logger
 
 import (
 	"context"
