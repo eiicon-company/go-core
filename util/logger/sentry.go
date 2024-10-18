@@ -1,4 +1,4 @@
-// Package logger is simply logger with sentry
+//nolint:govet
 package logger
 
 import (
