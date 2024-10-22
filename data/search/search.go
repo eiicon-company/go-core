@@ -18,16 +18,16 @@ type (
 	Command interface {
 		Search(ctx context.Context, search *elastic.SearchService) (*Result, error)
 		Bulk(ctx context.Context, bulk *elastic.BulkService) (*Result, error)
-		PostDocument(ctx context.Context, name string, id int, doc string) (*Result, error)
-		DeleteDocument(ctx context.Context, name string, id int) (*Result, error)
-		UpdateByScript(ctx context.Context, name string, id int, script string, params map[string]interface{}) (*Result, error)
-		UpsertByScript(ctx context.Context, name string, id int, script string, params, upsert map[string]interface{}) (*Result, error)
-		ListIndexNames(ctx context.Context) ([]string, error)
-		CreateIndex(ctx context.Context, name string, index string) (*Result, error)
-		DeleteIndex(ctx context.Context, name string) (*Result, error)
-		Aliases(ctx context.Context, name string) (*Result, error)
-		PutAlias(ctx context.Context, name, alias string) (*Result, error)
-		UpdateAliases(ctx context.Context, name, old, new string) (*Result, error)
+		PostDocument(ctx context.Context, client *elastic.Client, name string, id int, doc string) (*Result, error)
+		DeleteDocument(ctx context.Context, client *elastic.Client, name string, id int) (*Result, error)
+		UpdateByScript(ctx context.Context, client *elastic.Client, name string, id int, script string, params map[string]interface{}) (*Result, error)
+		UpsertByScript(ctx context.Context, client *elastic.Client, name string, id int, script string, params, upsert map[string]interface{}) (*Result, error)
+		ListIndexNames(ctx context.Context, client *elastic.Client) ([]string, error)
+		CreateIndex(ctx context.Context, client *elastic.Client, name string, index string) (*Result, error)
+		DeleteIndex(ctx context.Context, client *elastic.Client, name string) (*Result, error)
+		Aliases(ctx context.Context, client *elastic.Client, name string) (*Result, error)
+		PutAlias(ctx context.Context, client *elastic.Client, name, alias string) (*Result, error)
+		UpdateAliases(ctx context.Context, client *elastic.Client, name, old, new string) (*Result, error)
 	}
 
 	// command defines interfaces as elasticsearch api.
@@ -114,9 +114,9 @@ func (c *command) Bulk(ctx context.Context, bulk *elastic.BulkService) (*Result,
 	return c.do(ctx, fn)
 }
 
-func (c *command) PostDocument(ctx context.Context, name string, id int, doc string) (*Result, error) {
+func (c *command) PostDocument(ctx context.Context, client *elastic.Client, name string, id int, doc string) (*Result, error) {
 	fn := func(rch chan *Result) {
-		res, err := c.ESClient.Index().
+		res, err := client.Index().
 			Pretty(c.Env.IsDebug()).
 			Index(name).Id(strconv.Itoa(id)).BodyString(doc).Do(ctx)
 		rch <- &Result{Res: res, Err: err}
@@ -125,11 +125,11 @@ func (c *command) PostDocument(ctx context.Context, name string, id int, doc str
 	return c.do(ctx, fn)
 }
 
-func (c *command) UpdateByScript(ctx context.Context, name string, id int, script string, params map[string]interface{}) (*Result, error) {
+func (c *command) UpdateByScript(ctx context.Context, client *elastic.Client, name string, id int, script string, params map[string]interface{}) (*Result, error) {
 	fn := func(rch chan *Result) {
 		script := elastic.NewScript(script).Params(params).Lang("painless")
 
-		res, err := c.ESClient.Update().
+		res, err := client.Update().
 			Pretty(c.Env.IsDebug()).Index(name).Id(strconv.Itoa(id)).
 			Script(script).Do(ctx)
 		rch <- &Result{Res: res, Err: err}
@@ -138,11 +138,11 @@ func (c *command) UpdateByScript(ctx context.Context, name string, id int, scrip
 	return c.do(ctx, fn)
 }
 
-func (c *command) UpsertByScript(ctx context.Context, name string, id int, script string, params, upsert map[string]interface{}) (*Result, error) {
+func (c *command) UpsertByScript(ctx context.Context, client *elastic.Client, name string, id int, script string, params, upsert map[string]interface{}) (*Result, error) {
 	fn := func(rch chan *Result) {
 		script := elastic.NewScript(script).Params(params).Lang("painless")
 
-		res, err := c.ESClient.Update().
+		res, err := client.Update().
 			Pretty(c.Env.IsDebug()).Index(name).Id(strconv.Itoa(id)).
 			Script(script).ScriptedUpsert(true).Upsert(upsert).Do(ctx)
 		rch <- &Result{Res: res, Err: err}
@@ -151,9 +151,9 @@ func (c *command) UpsertByScript(ctx context.Context, name string, id int, scrip
 	return c.do(ctx, fn)
 }
 
-func (c *command) DeleteDocument(ctx context.Context, name string, id int) (*Result, error) {
+func (c *command) DeleteDocument(ctx context.Context, client *elastic.Client, name string, id int) (*Result, error) {
 	fn := func(rch chan *Result) {
-		res, err := c.ESClient.Delete().
+		res, err := client.Delete().
 			Pretty(c.Env.IsDebug()).
 			Index(name).Id(strconv.Itoa(id)).Do(ctx)
 		rch <- &Result{Res: res, Err: err}
@@ -162,13 +162,13 @@ func (c *command) DeleteDocument(ctx context.Context, name string, id int) (*Res
 	return c.do(ctx, fn)
 }
 
-func (c *command) ListIndexNames(_ context.Context) ([]string, error) {
-	return c.ESClient.IndexNames()
+func (c *command) ListIndexNames(_ context.Context, client *elastic.Client) ([]string, error) {
+	return client.IndexNames()
 }
 
-func (c *command) CreateIndex(ctx context.Context, name string, index string) (*Result, error) {
+func (c *command) CreateIndex(ctx context.Context, client *elastic.Client, name string, index string) (*Result, error) {
 	fn := func(rch chan *Result) {
-		res, err := c.ESClient.CreateIndex(name).
+		res, err := client.CreateIndex(name).
 			Pretty(c.Env.IsDebug()).Body(index).Do(ctx)
 		rch <- &Result{Res: res, Err: err}
 	}
@@ -176,9 +176,9 @@ func (c *command) CreateIndex(ctx context.Context, name string, index string) (*
 	return c.do(ctx, fn)
 }
 
-func (c *command) DeleteIndex(ctx context.Context, name string) (*Result, error) {
+func (c *command) DeleteIndex(ctx context.Context, client *elastic.Client, name string) (*Result, error) {
 	fn := func(rch chan *Result) {
-		res, err := c.ESClient.DeleteIndex(name).
+		res, err := client.DeleteIndex(name).
 			Pretty(c.Env.IsDebug()).Do(ctx)
 		rch <- &Result{Res: res, Err: err}
 	}
@@ -186,9 +186,9 @@ func (c *command) DeleteIndex(ctx context.Context, name string) (*Result, error)
 	return c.do(ctx, fn)
 }
 
-func (c *command) Aliases(ctx context.Context, name string) (*Result, error) {
+func (c *command) Aliases(ctx context.Context, client *elastic.Client, name string) (*Result, error) {
 	fn := func(rch chan *Result) {
-		res, err := c.ESClient.Aliases().
+		res, err := client.Aliases().
 			Pretty(c.Env.IsDebug()).Index(name).Do(ctx)
 		rch <- &Result{Res: res, Err: err}
 	}
@@ -196,9 +196,9 @@ func (c *command) Aliases(ctx context.Context, name string) (*Result, error) {
 	return c.do(ctx, fn)
 }
 
-func (c *command) PutAlias(ctx context.Context, name, alias string) (*Result, error) {
+func (c *command) PutAlias(ctx context.Context, client *elastic.Client, name, alias string) (*Result, error) {
 	fn := func(rch chan *Result) {
-		res, err := c.ESClient.Alias().
+		res, err := client.Alias().
 			Pretty(c.Env.IsDebug()).Add(name, alias).Do(ctx)
 		rch <- &Result{Res: res, Err: err}
 	}
@@ -206,9 +206,9 @@ func (c *command) PutAlias(ctx context.Context, name, alias string) (*Result, er
 	return c.do(ctx, fn)
 }
 
-func (c *command) UpdateAliases(ctx context.Context, name, old, new string) (*Result, error) {
+func (c *command) UpdateAliases(ctx context.Context, client *elastic.Client, name, old, new string) (*Result, error) {
 	fn := func(rch chan *Result) {
-		res, err := c.ESClient.Alias().
+		res, err := client.Alias().
 			Pretty(c.Env.IsDebug()).
 			Action(elastic.NewAliasRemoveAction(name).Index(old)).
 			Action(elastic.NewAliasAddAction(name).Index(new)).
@@ -219,10 +219,9 @@ func (c *command) UpdateAliases(ctx context.Context, name, old, new string) (*Re
 	return c.do(ctx, fn)
 }
 
-func newCommand(env util.Environment, client *elastic.Client) Command {
+func newCommand(env util.Environment) Command {
 	r := &command{
-		Env:      env,
-		ESClient: client,
+		Env: env,
 	}
 
 	return r
