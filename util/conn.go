@@ -186,7 +186,7 @@ func ESBulkConn(env Environment) (*elastic.Client, error) {
 	return esConn(env, )
 }
 
-func esConn(env Environment, op elastic.ClientOptionFunc...) (*elastic.Client, error) {
+func esConn(env Environment, op ...elastic.ClientOptionFunc) (*elastic.Client, error) {
 	es, err := elastic.NewClient(op...)
 	if err != nil {
 		return nil, fmt.Errorf("uninitialized es client <%s>: %s", env.EnvString("ESURL"), err)
