@@ -164,7 +164,7 @@ func ESConn(env Environment) (*elastic.Client, error) {
 		op = append(op, elastic.SetInfoLog(log.New(os.Stdout, "[ELASTIC] ", log.LstdFlags)))
 	}
 
-	return esConn(env)
+	return esConn(env, op...)
 }
 
 // ESBulkConn returns established connection
@@ -183,7 +183,7 @@ func ESBulkConn(env Environment) (*elastic.Client, error) {
 		op = append(op, elastic.SetInfoLog(log.New(os.Stdout, "[ELASTIC] ", log.LstdFlags)))
 	}
 
-	return esConn(env)
+	return esConn(env, op...)
 }
 
 func esConn(env Environment, op ...elastic.ClientOptionFunc) (*elastic.Client, error) {
