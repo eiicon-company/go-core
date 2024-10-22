@@ -164,6 +164,29 @@ func ESConn(env Environment) (*elastic.Client, error) {
 		op = append(op, elastic.SetInfoLog(log.New(os.Stdout, "[ELASTIC] ", log.LstdFlags)))
 	}
 
+	return esConn(env, )
+}
+
+// ESBulkConn returns established connection
+func ESBulkConn(env Environment) (*elastic.Client, error) {
+	var op []elastic.ClientOptionFunc
+	op = append(op, elastic.SetHttpClient(&http.Client{Timeout: 360 * time.Second}))
+	op = append(op, elastic.SetURL(env.EnvString("ESURL")))
+	op = append(op, elastic.SetSniff(true))
+	op = append(op, elastic.SetHealthcheck(true))
+	op = append(op, elastic.SetErrorLog(&logger.SentryErrorLogger{}))
+	// 8 retries with fixed delay of 100ms, 200ms, 300ms, 400ms, 500ms, 600ms, 700ms, and 800ms.
+	op = append(op, elastic.SetRetrier(elastic.NewBackoffRetrier(elastic.NewSimpleBackoff(100, 200, 300, 400, 600, 700, 800))))
+
+	if env.IsDebug() {
+		op = append(op, elastic.SetTraceLog(log.New(os.Stderr, "[[ELASTIC]] ", log.LstdFlags)))
+		op = append(op, elastic.SetInfoLog(log.New(os.Stdout, "[ELASTIC] ", log.LstdFlags)))
+	}
+
+	return esConn(env, )
+}
+
+func esConn(env Environment, op elastic.ClientOptionFunc...) (*elastic.Client, error) {
 	es, err := elastic.NewClient(op...)
 	if err != nil {
 		return nil, fmt.Errorf("uninitialized es client <%s>: %s", env.EnvString("ESURL"), err)
