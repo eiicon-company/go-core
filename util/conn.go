@@ -13,12 +13,16 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigquery"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"go.opentelemetry.io/otel/trace"
 
+	"github.com/XSAM/otelsql"
 	"github.com/getsentry/sentry-go"
 	"github.com/go-sql-driver/mysql"
 	dlmredis "github.com/gomodule/redigo/redis"
 	radix "github.com/mediocregopher/radix/v3"
 	"github.com/olivere/elastic/v7"
+	"github.com/olivere/elastic/v7/trace/opentelemetry"
 	proxy "github.com/shogo82148/go-sql-proxy"
 	"github.com/spf13/cast"
 
@@ -34,7 +38,29 @@ func DBConn(dialect string, env Environment) (*sql.DB, error) {
 
 // SelectDBConn can choose db connection
 func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
-	db, err := sql.Open(dialect, dsn)
+	db, err := otelsql.Open(dialect, dsn, otelsql.WithAttributes(
+		semconv.DBSystemMySQL,
+	),
+		otelsql.WithSpanOptions(
+			otelsql.SpanOptions{
+				SpanFilter: func(ctx context.Context, method otelsql.Method, query string, args []driver.NamedValue) bool {
+					span := trace.SpanFromContext(ctx)
+					spanContext := span.SpanContext()
+
+					switch method {
+					case otelsql.MethodConnQuery: // Method = "sql.conn.query"
+						return false
+					case otelsql.MethodConnResetSession: // Method = "sql.conn.reset_session"
+						return false
+					case otelsql.MethodRows: // Method = "sql.rows"
+						return false
+					}
+
+					// Check if the span is recording and if it's not a root span (i.e., it has a valid parent)
+					return spanContext.IsValid()
+				},
+			}),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("it was unable to connect the DB. %s", err)
 	}
@@ -151,7 +177,10 @@ func DBSlowQuery(dialect string, period time.Duration) {
 // ESConn returns established connection
 func ESConn(env Environment) (*elastic.Client, error) {
 	var op []elastic.ClientOptionFunc
-	op = append(op, elastic.SetHttpClient(&http.Client{Timeout: 30 * time.Second}))
+	op = append(op, elastic.SetHttpClient(&http.Client{
+		Timeout:   30 * time.Second,
+		Transport: opentelemetry.NewTransport(),
+	}))
 	op = append(op, elastic.SetURL(env.EnvString("ESURL")))
 	op = append(op, elastic.SetSniff(true))
 	op = append(op, elastic.SetHealthcheck(true))
