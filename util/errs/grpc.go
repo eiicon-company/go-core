@@ -23,6 +23,8 @@ var (
 	ErrGRPCUnauthenticated = status.Error(codes.Unauthenticated, "You need logged in")
 	// ErrGRPCInvalidArgument invalid request
 	ErrGRPCInvalidArgument = status.Error(codes.InvalidArgument, "Invalid Argument")
+	// ErrGRPCPermissionDenied ...
+	ErrGRPCPermissionDenied = status.Error(codes.PermissionDenied, "Permission denied")
 )
 
 // IsGRPCError returns determined value as boolean which a error has *status.Status
