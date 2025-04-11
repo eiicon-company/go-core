@@ -14,6 +14,9 @@ func GRPC2HTTP(code interface{}) int {
 	case codes.Code:
 		return grpc2http(v)
 	case int:
+		if v < 0 || v > int(^uint32(0)) {
+			return http.StatusInternalServerError // Handle overflow or negative values
+		}
 		return GRPC2HTTP(codes.Code(v))
 	}
 }
