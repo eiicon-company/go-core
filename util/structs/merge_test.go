@@ -65,7 +65,7 @@ func TestOverwriteMerge(t *testing.T) {
 	if dest.DeletedAt.Time != src1.DeletedAt.Time {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
-	if dest.UpdatedAt == now {
+	if dest.UpdatedAt.Equal(now) {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
 }
@@ -163,7 +163,7 @@ func TestMerge(t *testing.T) {
 	if !dest.IsDeleted {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
-	if dest.DeletedAt.Time == now {
+	if dest.DeletedAt.Time.Equal(now) {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
 }
@@ -212,7 +212,7 @@ func TestMergeRestParameters(t *testing.T) {
 	if !dest.IsDeleted {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
-	if dest.DeletedAt.Time == now {
+	if dest.DeletedAt.Time.Equal(now) {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
 	if dest.Name != "1" {
@@ -264,7 +264,7 @@ func TestMergeNil(t *testing.T) {
 	if !dest.IsDeleted {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
-	if dest.DeletedAt.Time == now {
+	if dest.DeletedAt.Time.Equal(now) {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
 	if dest.Name != "1" {

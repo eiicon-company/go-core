@@ -87,19 +87,9 @@ jobs:
           - v1-go-dependencies-{{ checksum "go.sum" }}
 
       - run:
-          name: misspell
-          command: |
-            make misspell
-
-      - run:
           name: linter
           command: |
             make linter
-
-      - run:
-          name: golint
-          command: |
-            make golint
 
       - run:
           name: test
@@ -112,7 +102,6 @@ jobs:
             - ~/go/pkg
 
 workflows:
-  version: 2.1
   builds_deploy:
     jobs:
       - go_build

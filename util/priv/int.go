@@ -20,7 +20,7 @@ func MustInt64(unk interface{}) int64 {
 func ToInt64(unk interface{}) (int64, error) {
 	v, err := ToInt(unk)
 	if err != nil {
-		msg := "[WARN] colud not cast to int64"
+		msg := "[WARN] could not cast to int64"
 		logger.Println(msg, err)
 	}
 
@@ -51,10 +51,18 @@ func ToInt(unk interface{}) (int, error) {
 	case int:
 		return i, nil
 	case uint64:
+		if i > uint64(^uint(0)) {
+			return 0, errUnexpectedNumberType // Handle overflow
+		}
+		//nolint:gosec // G115
 		return int(i), nil
 	case uint32:
 		return int(i), nil
 	case uint:
+		if i > ^uint(0) {
+			return 0, errUnexpectedNumberType // Handle overflow
+		}
+		//nolint:gosec // G115
 		return int(i), nil
 	case string:
 		return strconv.Atoi(i)

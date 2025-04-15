@@ -27,7 +27,7 @@ type (
 		DeleteIndex(ctx context.Context, client *elastic.Client, name string) (*Result, error)
 		Aliases(ctx context.Context, client *elastic.Client, name string) (*Result, error)
 		PutAlias(ctx context.Context, client *elastic.Client, name, alias string) (*Result, error)
-		UpdateAliases(ctx context.Context, client *elastic.Client, name, old, new string) (*Result, error)
+		UpdateAliases(ctx context.Context, client *elastic.Client, name, oldIx, newIx string) (*Result, error)
 	}
 
 	// command defines interfaces as elasticsearch api.
@@ -206,12 +206,12 @@ func (c *command) PutAlias(ctx context.Context, client *elastic.Client, name, al
 	return c.do(ctx, fn)
 }
 
-func (c *command) UpdateAliases(ctx context.Context, client *elastic.Client, name, old, new string) (*Result, error) {
+func (c *command) UpdateAliases(ctx context.Context, client *elastic.Client, name, oldIx, newIx string) (*Result, error) {
 	fn := func(rch chan *Result) {
 		res, err := client.Alias().
 			Pretty(c.Env.IsDebug()).
-			Action(elastic.NewAliasRemoveAction(name).Index(old)).
-			Action(elastic.NewAliasAddAction(name).Index(new)).
+			Action(elastic.NewAliasRemoveAction(name).Index(oldIx)).
+			Action(elastic.NewAliasAddAction(name).Index(newIx)).
 			Do(ctx)
 		rch <- &Result{Res: res, Err: err}
 	}

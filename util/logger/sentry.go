@@ -1,5 +1,4 @@
 // Package logger ...
-//nolint:govet
 package logger
 
 import (
