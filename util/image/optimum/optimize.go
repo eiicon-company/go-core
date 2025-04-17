@@ -37,7 +37,7 @@ func Optimize(buf []byte) ([]byte, error) {
 	}
 }
 
-// OptimizeGIFReader re-encodes GIF without external tools
+// OptimizeGIFReader reduce GIF size
 func OptimizeGIFReader(reader io.Reader) ([]byte, error) {
 	img, _, err := image.Decode(reader)
 	if err != nil {
@@ -53,7 +53,7 @@ func OptimizeGIFReader(reader io.Reader) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// OptimizeGIF re-encodes GIF without external tools
+// OptimizeGIF reduce GIF size
 func OptimizeGIF(buf []byte) ([]byte, error) {
 	return OptimizeGIFReader(bytes.NewReader(buf))
 }
