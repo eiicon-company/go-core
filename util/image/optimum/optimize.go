@@ -2,10 +2,12 @@ package optimum
 
 import (
 	"bytes"
+	"image"
+	"image/gif"
+	"image/jpeg"
+	"image/png"
 	"io"
-	"os/exec"
 
-	"github.com/codeskyblue/go-sh"
 	"github.com/gabriel-vasile/mimetype"
 	"golang.org/x/xerrors"
 
@@ -35,23 +37,20 @@ func Optimize(buf []byte) ([]byte, error) {
 	}
 }
 
-const (
-	jpgOptimizer = "cjpeg"
-	pngOptimizer = "pngquant"
-	gifOptimizer = "gifsicle"
-)
-
 // OptimizeGIFReader reduce GIF size
 func OptimizeGIFReader(reader io.Reader) ([]byte, error) {
-	path, err := exec.LookPath(gifOptimizer)
+	img, _, err := image.Decode(reader)
 	if err != nil {
-		return nil, err
+		return nil, xerrors.Errorf("failed to decode GIF image: %w", err)
 	}
 
-	return sh.Command(path, "--optimize=3").
-		SetStdin(reader).
-		Command("cat", "-").
-		Output()
+	var buf bytes.Buffer
+	err = gif.Encode(&buf, img, nil)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to encode GIF image: %w", err)
+	}
+
+	return buf.Bytes(), nil
 }
 
 // OptimizeGIF reduce GIF size
@@ -61,14 +60,18 @@ func OptimizeGIF(buf []byte) ([]byte, error) {
 
 // OptimizeJPGReader reduce JPG size
 func OptimizeJPGReader(reader io.Reader) ([]byte, error) {
-	path, err := exec.LookPath(jpgOptimizer)
+	img, _, err := image.Decode(reader)
 	if err != nil {
-		return nil, err
+		return nil, xerrors.Errorf("failed to decode JPEG image: %w", err)
 	}
 
-	return sh.Command(path, "-quality", "50,80").
-		SetStdin(reader).
-		Output()
+	var buf bytes.Buffer
+	err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: 80})
+	if err != nil {
+		return nil, xerrors.Errorf("failed to encode JPEG image: %w", err)
+	}
+
+	return buf.Bytes(), nil
 }
 
 // OptimizeJPG reduce JPG size
@@ -78,14 +81,19 @@ func OptimizeJPG(buf []byte) ([]byte, error) {
 
 // OptimizePNGReader reduce PNG size
 func OptimizePNGReader(reader io.Reader) ([]byte, error) {
-	path, err := exec.LookPath(pngOptimizer)
+	img, _, err := image.Decode(reader)
 	if err != nil {
-		return nil, err
+		return nil, xerrors.Errorf("failed to decode PNG image: %w", err)
 	}
 
-	return sh.Command(path, "--quality", "50-80", "--speed", "3", "-").
-		SetStdin(reader).
-		Output()
+	var buf bytes.Buffer
+	encoder := png.Encoder{CompressionLevel: png.BestCompression}
+	err = encoder.Encode(&buf, img)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to encode PNG image: %w", err)
+	}
+
+	return buf.Bytes(), nil
 }
 
 // OptimizePNG reduce PNG size
