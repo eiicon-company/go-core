@@ -10,8 +10,7 @@ import (
 func MustInt64(unk interface{}) int64 {
 	v, err := ToInt64(unk)
 	if err != nil {
-		msg := "[WARN] colud not cast to int64"
-		logger.Println(msg, err)
+		logger.Warnf("colud not cast to int64: %v", err)
 	}
 	return v
 }
@@ -20,8 +19,7 @@ func MustInt64(unk interface{}) int64 {
 func ToInt64(unk interface{}) (int64, error) {
 	v, err := ToInt(unk)
 	if err != nil {
-		msg := "[WARN] could not cast to int64"
-		logger.Println(msg, err)
+		logger.Warnf("could not cast to int64: %v", err)
 	}
 
 	return int64(v), nil
@@ -31,8 +29,7 @@ func ToInt64(unk interface{}) (int64, error) {
 func MustInt(unk interface{}) int {
 	v, err := ToInt(unk)
 	if err != nil {
-		msg := "[WARN] colud not cast to int"
-		logger.Println(msg, err.Error())
+		logger.Warnf("colud not cast to int: %v", err)
 	}
 	return v
 }
