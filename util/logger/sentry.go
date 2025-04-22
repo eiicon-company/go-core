@@ -84,84 +84,6 @@ func (e *INFO) Error() string     { return e.s }
 func (e *DEBUG) Error() string    { return e.s }
 func (e *TODO) Error() string     { return e.s }
 
-// C is alias with critical
-func C(format string, args ...interface{}) { criticaldeps(sentry.CaptureMessage, 3, format, args...) }
-
-// E is alias with error
-func E(format string, args ...interface{}) { errdeps(sentry.CaptureMessage, 3, format, args...) }
-
-// W is alias with warning
-func W(format string, args ...interface{}) { warndeps(sentry.CaptureMessage, 3, format, args...) }
-
-// I is alias with info
-func I(format string, args ...interface{}) { infodeps(sentry.CaptureMessage, 3, format, args...) }
-
-// D is alias with debug
-func D(format string, args ...interface{}) { debugdeps(sentry.CaptureMessage, 3, format, args...) }
-
-// T is alias with todo
-func T(format string, args ...interface{}) { tododeps(sentry.CaptureMessage, 3, format, args...) }
-
-// CCtx pritns as information
-func CCtx(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		criticaldeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	criticaldeps(sentry.CaptureMessage, 3, format, args...)
-}
-
-// ECtx pritns as information
-func ECtx(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		errdeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	errdeps(sentry.CaptureMessage, 3, format, args...)
-}
-
-// WCtx pritns as information
-func WCtx(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		warndeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	warndeps(sentry.CaptureMessage, 3, format, args...)
-}
-
-// ICtx pritns as information
-func ICtx(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		infodeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	infodeps(sentry.CaptureMessage, 3, format, args...)
-}
-
-// DCtx pritns as information
-func DCtx(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		debugdeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	debugdeps(sentry.CaptureMessage, 3, format, args...)
-}
-
-// TCtx pritns as information
-func TCtx(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		tododeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	tododeps(sentry.CaptureMessage, 3, format, args...)
-}
-
 // SetDebug set a debug by.
 func SetDebug(debug bool) {
 	isDebug = debug
@@ -173,35 +95,31 @@ func SetSentry(sentry bool) {
 }
 
 // SetVerbose set a verbose logging by.
-func SetVerbose(debug bool) {
-	isVerbose = debug
+func SetVerbose(verbose bool) {
+	isVerbose = verbose
+}
+
+// getSender returns the appropriate MessageFunc based on the context
+func getSender(ctx context.Context) MessageFunc {
+	if hub := sentry.GetHubFromContext(ctx); hub != nil {
+		return hub.CaptureMessage
+	}
+	return sentry.CaptureMessage
 }
 
 // TodofWithContext outputs ...
 func TodofWithContext(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		tododeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	tododeps(sentry.CaptureMessage, 3, format, args...)
+	tododeps(getSender(ctx), 3, fmt.Sprintf(format, args...))
 }
 
 // TodolnWithContext outputs ...
 func TodolnWithContext(ctx context.Context, args ...interface{}) {
-	s := fmt.Sprintln(args...)
-
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		tododeps(hub.CaptureMessage, 3, s)
-		return
-	}
-
-	tododeps(sentry.CaptureMessage, 3, s)
+	tododeps(getSender(ctx), 3, fmt.Sprintln(args...))
 }
 
 // Todof outputs ...
 func Todof(format string, args ...interface{}) {
-	tododeps(sentry.CaptureMessage, 3, format, args...)
+	tododeps(sentry.CaptureMessage, 3, fmt.Sprintf(format, args...))
 }
 
 // Todoln outputs ...
@@ -209,8 +127,12 @@ func Todoln(args ...interface{}) {
 	tododeps(sentry.CaptureMessage, 3, fmt.Sprintln(args...))
 }
 
-func tododeps(fn MessageFunc, deps int, format string, args ...interface{}) {
-	s := fmt.Sprintf(format, args...)
+var (
+	T = Todof // alias for Todof
+	TCtx = TodofWithContext // alias for TodofWithContext
+)
+
+func tododeps(fn MessageFunc, deps int, s string) {
 	_ = todoLogger.Output(deps, s)
 
 	if isSentry {
@@ -223,29 +145,17 @@ func tododeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 
 // DebugfWithContext outputs ...
 func DebugfWithContext(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		debugdeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	debugdeps(sentry.CaptureMessage, 3, format, args...)
+	debugdeps(getSender(ctx), 3, fmt.Sprintf(format, args...))
 }
 
 // DebuglnWithContext outputs ...
 func DebuglnWithContext(ctx context.Context, args ...interface{}) {
-	s := fmt.Sprintln(args...)
-
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		debugdeps(hub.CaptureMessage, 3, s)
-		return
-	}
-
-	debugdeps(sentry.CaptureMessage, 3, s)
+		debugdeps(getSender(ctx), 3, fmt.Sprintln(args...))
 }
 
 // Debugf outputs ...
 func Debugf(format string, args ...interface{}) {
-	debugdeps(sentry.CaptureMessage, 3, format, args...)
+	debugdeps(sentry.CaptureMessage, 3, fmt.Sprintf(format, args...))
 }
 
 // Debugln outputs ...
@@ -253,9 +163,13 @@ func Debugln(args ...interface{}) {
 	debugdeps(sentry.CaptureMessage, 3, fmt.Sprintln(args...))
 }
 
-func debugdeps(fn MessageFunc, deps int, format string, args ...interface{}) {
+var (
+	DCtx = DebugfWithContext // alias for DebugfWithContext
+	D    = Debugf            // alias for Debugf
+)
+
+func debugdeps(fn MessageFunc, deps int, s string) {
 	if isDebug {
-		s := fmt.Sprintf(format, args...)
 		_ = debugLogger.Output(deps, s)
 
 		if isVerbose && isSentry {
@@ -270,29 +184,17 @@ func debugdeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 
 // InfofWithContext pritns as information
 func InfofWithContext(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		infodeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	infodeps(sentry.CaptureMessage, 3, format, args...)
+	infodeps(getSender(ctx), 3, fmt.Sprintf(format, args...))
 }
 
 // InfolnWithContext pritns as information
 func InfolnWithContext(ctx context.Context, args ...interface{}) {
-	s := fmt.Sprintln(args...)
-
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		infodeps(hub.CaptureMessage, 3, s)
-		return
-	}
-
-	infodeps(sentry.CaptureMessage, 3, s)
+	infodeps(getSender(ctx), 3, fmt.Sprintln(args...))
 }
 
 // Infof pritns as information
 func Infof(format string, args ...interface{}) {
-	infodeps(sentry.CaptureMessage, 3, format, args...)
+	infodeps(sentry.CaptureMessage, 3, fmt.Sprintf(format, args...))
 }
 
 // Infoln pritns as information
@@ -300,8 +202,13 @@ func Infoln(args ...interface{}) {
 	infodeps(sentry.CaptureMessage, 3, fmt.Sprintln(args...))
 }
 
-func infodeps(fn MessageFunc, deps int, format string, args ...interface{}) {
-	s := fmt.Sprintf(format, args...)
+var (
+	ICtx = InfofWithContext // alias for InfofWithContext
+	I    = Infof            // alias for Infof
+)
+
+
+func infodeps(fn MessageFunc, deps int, s string) {
 	_ = infoLogger.Output(deps, s)
 
 	if isVerbose && isSentry {
@@ -315,56 +222,27 @@ func infodeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 
 // WarnfWithContext pritns as warning
 func WarnfWithContext(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		warndeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	warndeps(sentry.CaptureMessage, 3, format, args...)
+	warndeps(getSender(ctx), 3, fmt.Sprintf(format, args...))
 }
 
 // WarningfWithContext pritns as warning
 func WarningfWithContext(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		warndeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	warndeps(sentry.CaptureMessage, 3, format, args...)
+	warndeps(getSender(ctx), 3, fmt.Sprintf(format, args...))
 }
 
 // WarninglnWithContext outputs ...
 func WarninglnWithContext(ctx context.Context, args ...interface{}) {
-	s := fmt.Sprintln(args...)
-
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		warndeps(hub.CaptureMessage, 3, s)
-		return
-	}
-
-	warndeps(sentry.CaptureMessage, 3, s)
+	warndeps(getSender(ctx), 3, fmt.Sprintln(args...))
 }
 
 // WarnlnWithContext outputs ...
 func WarnlnWithContext(ctx context.Context, args ...interface{}) {
-	s := fmt.Sprintln(args...)
-
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		warndeps(hub.CaptureMessage, 3, s)
-		return
-	}
-
-	warndeps(sentry.CaptureMessage, 3, s)
-}
-
-// Warnf pritns as warning
-func Warnf(format string, args ...interface{}) {
-	warndeps(sentry.CaptureMessage, 3, format, args...)
+	warndeps(getSender(ctx), 3, fmt.Sprintln(args...))
 }
 
 // Warningf pritns as warning
 func Warningf(format string, args ...interface{}) {
-	warndeps(sentry.CaptureMessage, 3, format, args...)
+	warndeps(sentry.CaptureMessage, 3, fmt.Sprintf(format, args...))
 }
 
 // Warningln outputs ...
@@ -372,13 +250,14 @@ func Warningln(args ...interface{}) {
 	warndeps(sentry.CaptureMessage, 3, fmt.Sprintln(args...))
 }
 
-// Warnln outputs ...
-func Warnln(args ...interface{}) {
-	warndeps(sentry.CaptureMessage, 3, fmt.Sprintln(args...))
-}
+var (
+	Warnf  = Warningf            // alias for Warningf
+	Warnln = Warningln           // alias for Warningf
+	WCtx   = WarningfWithContext // alias for WarninglnWithContext
+	W      = Warningf            // alias for Warningf
+)
 
-func warndeps(fn MessageFunc, deps int, format string, args ...interface{}) {
-	s := fmt.Sprintf(format, args...)
+func warndeps(fn MessageFunc, deps int, s string) {
 	_ = warnLogger.Output(deps, s)
 
 	if isVerbose && isSentry {
@@ -392,46 +271,12 @@ func warndeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 
 // ErrorlnWithContext prints as error
 func ErrorlnWithContext(ctx context.Context, args ...interface{}) {
-	s := fmt.Sprintln(args...)
-
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		errdeps(hub.CaptureMessage, 3, s)
-		return
-	}
-
-	errdeps(sentry.CaptureMessage, 3, s)
+	errdeps(getSender(ctx), 3, fmt.Sprintln(args...))
 }
 
 // ErrorfWithContext prints as error
 func ErrorfWithContext(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		errdeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	errdeps(sentry.CaptureMessage, 3, format, args...)
-}
-
-// ErrfWithContext prints as error
-func ErrfWithContext(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		errdeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	errdeps(sentry.CaptureMessage, 3, format, args...)
-}
-
-// ErrlnWithContext outputs ...
-func ErrlnWithContext(ctx context.Context, args ...interface{}) {
-	s := fmt.Sprintln(args...)
-
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		errdeps(hub.CaptureMessage, 3, s)
-		return
-	}
-
-	errdeps(sentry.CaptureMessage, 3, s)
+	errdeps(getSender(ctx), 3, fmt.Sprintf(format, args...))
 }
 
 // Errorln pritns as error
@@ -441,21 +286,19 @@ func Errorln(args ...interface{}) {
 
 // Errorf pritns as error
 func Errorf(format string, args ...interface{}) {
-	errdeps(sentry.CaptureMessage, 3, format, args...)
+	errdeps(sentry.CaptureMessage, 3, fmt.Sprintf(format, args...))
 }
 
-// Errf pritns as error
-func Errf(format string, args ...interface{}) {
-	errdeps(sentry.CaptureMessage, 3, format, args...)
-}
+var (
+	ErrWithContext   = ErrorfWithContext  // alias for ErrorfWithContext
+	ErrlnWithContext = ErrorlnWithContext // alias for ErrorlnWithContext
+	Errln            = Errorln            // alias for Errorln
+	Errf             = Errorf             // alias for Errorf
+	ECtx             = ErrorfWithContext  // alias for ErrorfWithContext
+	E                = Errorf             // alias for Errorf
+)
 
-// Errln outputs ...
-func Errln(args ...interface{}) {
-	errdeps(sentry.CaptureMessage, 3, fmt.Sprintln(args...))
-}
-
-func errdeps(fn MessageFunc, deps int, format string, args ...interface{}) {
-	s := fmt.Sprintf(format, args...)
+func errdeps(fn MessageFunc, deps int, s string) {
 	_ = errLogger.Output(deps, s)
 
 	if isSentry {
@@ -469,51 +312,17 @@ func errdeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 
 // CriticalfWithContext prints as critical
 func CriticalfWithContext(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		criticaldeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	criticaldeps(sentry.CaptureMessage, 3, format, args...)
+	criticaldeps(getSender(ctx), 3, fmt.Sprintf(format, args...))
 }
 
 // CriticalnWithContext outputs ...
 func CriticalnWithContext(ctx context.Context, args ...interface{}) {
-	s := fmt.Sprintln(args...)
-
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		criticaldeps(hub.CaptureMessage, 3, s)
-		return
-	}
-
-	criticaldeps(sentry.CaptureMessage, 3, s)
-}
-
-// CrtlnWithContext prints as critical
-func CrtlnWithContext(ctx context.Context, args ...interface{}) {
-	s := fmt.Sprintln(args...)
-
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		criticaldeps(hub.CaptureMessage, 3, s)
-		return
-	}
-
-	criticaldeps(sentry.CaptureMessage, 3, s)
-}
-
-// CrtlfWithContext prints as critical
-func CrtlfWithContext(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		criticaldeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	criticaldeps(sentry.CaptureMessage, 3, format, args...)
+	criticaldeps(getSender(ctx), 3, fmt.Sprintln(args...))
 }
 
 // Criticalf pritns as critical
 func Criticalf(format string, args ...interface{}) {
-	criticaldeps(sentry.CaptureMessage, 3, format, args...)
+	criticaldeps(sentry.CaptureMessage, 3, fmt.Sprintf(format, args...))
 }
 
 // Criticaln outputs ...
@@ -521,18 +330,16 @@ func Criticaln(args ...interface{}) {
 	criticaldeps(sentry.CaptureMessage, 3, fmt.Sprintln(args...))
 }
 
-// Crtln pritns as critical
-func Crtln(args ...interface{}) {
-	criticaldeps(sentry.CaptureMessage, 3, fmt.Sprintln(args...))
-}
+var (
+	CrtlfWithContext = CriticalfWithContext // alias for CriticalfWithContext
+	CCtx             = CriticalfWithContext // alias for CriticalfWithContext
+	CrtlnWithContext = CriticalnWithContext // alias for CriticalnWithContext
+	Crtln            = Criticaln            // alias for Criticaln
+	Crtlf            = Criticalf            // alias for Criticalf
+	C                = Criticalf            // alias for Criticalf
+)
 
-// Crtlf pritns as critical
-func Crtlf(format string, args ...interface{}) {
-	criticaldeps(sentry.CaptureMessage, 3, format, args...)
-}
-
-func criticaldeps(fn MessageFunc, deps int, format string, args ...interface{}) {
-	s := fmt.Sprintf(format, args...)
+func criticaldeps(fn MessageFunc, deps int, s string) {
 	_ = criticalLogger.Output(deps, s)
 
 	if isSentry {
@@ -546,29 +353,17 @@ func criticaldeps(fn MessageFunc, deps int, format string, args ...interface{}) 
 
 // PanicfWithContext prints as panic
 func PanicfWithContext(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		panicdeps(hub.CaptureMessage, 3, format, args...)
-		return
-	}
-
-	panicdeps(sentry.CaptureMessage, 3, format, args...)
+	panicdeps(getSender(ctx), 3, fmt.Sprintf(format, args...))
 }
 
 // PaniclnWithContext outputs ...
 func PaniclnWithContext(ctx context.Context, args ...interface{}) {
-	s := fmt.Sprintln(args...)
-
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		panicdeps(hub.CaptureMessage, 3, s)
-		return
-	}
-
-	panicdeps(sentry.CaptureMessage, 3, s)
+	panicdeps(getSender(ctx), 3, fmt.Sprintln(args...))
 }
 
 // Panicf pritns as panic
 func Panicf(format string, args ...interface{}) {
-	panicdeps(sentry.CaptureMessage, 3, format, args...)
+	panicdeps(sentry.CaptureMessage, 3, fmt.Sprintf(format, args...))
 }
 
 // Panicln outputs ...
@@ -576,8 +371,12 @@ func Panicln(args ...interface{}) {
 	panicdeps(sentry.CaptureMessage, 3, fmt.Sprintln(args...))
 }
 
-func panicdeps(fn MessageFunc, deps int, format string, args ...interface{}) {
-	s := fmt.Sprintf(format, args...)
+var (
+	PCtx = PanicfWithContext // alias for PanicfWithContext
+	P    = Panicf            // alias for Panicf
+)
+
+func panicdeps(fn MessageFunc, deps int, s string) {
 	_ = panicLogger.Output(deps, s)
 
 	if isSentry {
@@ -593,24 +392,12 @@ func panicdeps(fn MessageFunc, deps int, format string, args ...interface{}) {
 
 // PrintfWithContext prints with format
 func PrintfWithContext(ctx context.Context, format string, args ...interface{}) {
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		printdeps(hub.CaptureMessage, 3, fmt.Sprintf(format, args...))
-		return
-	}
-
-	printdeps(sentry.CaptureMessage, 3, fmt.Sprintf(format, args...))
+	printdeps(getSender(ctx), 3, fmt.Sprintf(format, args...))
 }
 
 // PrintlnWithContext outputs ...
 func PrintlnWithContext(ctx context.Context, args ...interface{}) {
-	s := fmt.Sprintln(args...)
-
-	if hub := sentry.GetHubFromContext(ctx); hub != nil {
-		printdeps(hub.CaptureMessage, 3, s)
-		return
-	}
-
-	printdeps(sentry.CaptureMessage, 3, s)
+	printdeps(getSender(ctx), 3, fmt.Sprintln(args...))
 }
 
 // Printf pritns with format
@@ -620,12 +407,10 @@ func Printf(format string, args ...interface{}) {
 
 // Println outputs ...
 func Println(args ...interface{}) {
-	printdeps(sentry.CaptureMessage, 3, args...)
+	printdeps(sentry.CaptureMessage, 3, fmt.Sprintln(args...))
 }
 
-func printdeps(fn MessageFunc, deps int, args ...interface{}) {
-	s := fmt.Sprintln(args...)
-
+func printdeps(fn MessageFunc, deps int, s string) {
 	switch {
 	case strings.Contains(s, "[PANIC]"):
 		criticaldeps(fn, deps+1, s) // TODO: soft panic logging

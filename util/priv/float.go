@@ -13,8 +13,7 @@ import (
 func MustFloat(unk interface{}) float64 {
 	v, err := ToFloat(unk)
 	if err != nil {
-		msg := "[WARN] colud not cast to float64"
-		logger.Println(msg, err.Error())
+		logger.Warnf("colud not cast to float64: %v", err)
 	}
 	return v
 }
@@ -51,7 +50,6 @@ func ToFloat(unk interface{}) (float64, error) {
 			s := sv.String()
 			return strconv.ParseFloat(s, 64)
 		}
-		msg := "can't convert %v to float64"
-		return math.NaN(), fmt.Errorf(msg, v.Type())
+		return math.NaN(), fmt.Errorf("can't convert %v to float64", v.Type())
 	}
 }

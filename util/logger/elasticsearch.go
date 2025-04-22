@@ -1,6 +1,10 @@
 package logger
 
-import "github.com/getsentry/sentry-go"
+import (
+	"fmt"
+
+	"github.com/getsentry/sentry-go"
+)
 
 type (
 	// SentryErrorLogger is satisfied of elastic.Logger
@@ -11,10 +15,10 @@ type (
 
 // Printf prints out message as error
 func (a *SentryErrorLogger) Printf(format string, v ...interface{}) {
-	errdeps(sentry.CaptureMessage, 4, format, v...)
+	errdeps(sentry.CaptureMessage, 4, fmt.Sprintf(format, v...))
 }
 
 // Printf prints out message as info
 func (a *SentryInfoLogger) Printf(format string, v ...interface{}) {
-	infodeps(sentry.CaptureMessage, 4, format, v...)
+	infodeps(sentry.CaptureMessage, 4, fmt.Sprintf(format, v...))
 }

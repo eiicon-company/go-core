@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io"
 	"log"
-	"os"
 	"strings"
 	"testing"
 )
@@ -161,25 +160,5 @@ func setup(out io.Writer) {
 }
 
 func TestMain(m *testing.M) {
-	origNoLogger := noLogger
-	origPanicLogger := panicLogger
-	origCriticalLogger := criticalLogger
-	origErrLogger := errLogger
-	origWarnLogger := warnLogger
-	origInfoLogger := infoLogger
-	origDebugLogger := debugLogger
-	origTodoLogger := todoLogger
-
-	code := m.Run()
-
-	noLogger = origNoLogger
-	panicLogger = origPanicLogger
-	criticalLogger = origCriticalLogger
-	errLogger = origErrLogger
-	warnLogger = origWarnLogger
-	infoLogger = origInfoLogger
-	debugLogger = origDebugLogger
-	todoLogger = origTodoLogger
-
-	os.Exit(code)
+	m.Run()
 }
