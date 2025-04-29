@@ -17,19 +17,6 @@ type numericType interface {
 		~float32 | ~float64
 }
 
-// Int32 returns ...
-func Int32[FromType numericType](value FromType) int32 {
-	i, err := as.Int32(value)
-	if err != nil {
-		_, f, l, ok := runtime.Caller(1)
-		if !ok {
-			return i
-		}
-		logger.C("%s:%d: Int32 overflow or underflow occurred %d: %+v", f, l, i, err)
-	}
-	return i
-}
-
 // Int returns ...
 func Int[FromType numericType](value FromType) int {
 	i, err := as.Int(value)
@@ -39,6 +26,32 @@ func Int[FromType numericType](value FromType) int {
 			return i
 		}
 		logger.C("%s:%d: Int overflow or underflow occurred %d: %+v", f, l, i, err)
+	}
+	return i
+}
+
+// Int8 returns ...
+func Int8[FromType numericType](value FromType) int8 {
+	i, err := as.Int8(value)
+	if err != nil {
+		_, f, l, ok := runtime.Caller(1)
+		if !ok {
+			return i
+		}
+		logger.C("%s:%d: Int8 overflow or underflow occurred %d: %+v", f, l, i, err)
+	}
+	return i
+}
+
+// Int32 returns ...
+func Int32[FromType numericType](value FromType) int32 {
+	i, err := as.Int32(value)
+	if err != nil {
+		_, f, l, ok := runtime.Caller(1)
+		if !ok {
+			return i
+		}
+		logger.C("%s:%d: Int32 overflow or underflow occurred %d: %+v", f, l, i, err)
 	}
 	return i
 }
