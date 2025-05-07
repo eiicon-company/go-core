@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: DeterminateSystems/nix-installer-action@main
+      with:
+        extra-conf: |
+          cores = 0
+    - uses: rrbutani/use-nix-shell-action@v1
+      with:
+        devShell: .#
+
+    - name: Lint
+      run: |
+        make linter
+        git ls-files '*.nix' | xargs nixfmt -c
+        actionlint
+
+    - name: Test
+      run: |
+        make test
+
