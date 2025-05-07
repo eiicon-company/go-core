@@ -1,6 +1,10 @@
 package dsn
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestDSN(t *testing.T) {
 	t.Helper()

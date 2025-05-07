@@ -9,6 +9,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/require"
 	"github.com/yosssi/gohtml"
 )
 
@@ -35,9 +36,7 @@ func TestTransformDataURIFunctionNoAttempt(t *testing.T) {
 	_, err := TransformDataURI(body, func( /*idx int, */ attr string) string {
 		return fmt.Sprintf("replaced-%s", attr)
 	})
-	if !xerrors.Is(err, ErrTransformNoAttempt) { //nolint:staticcheck
-		t.Fatalf("must be returning ErrTransformNoAttempt error: %+#v", err)
-	}
+	require.True(t, xerrors.Is(err, ErrTransformNoAttempt)) //nolint:staticcheck
 }
 
 func TestTransformDataURIFunction(t *testing.T) {
@@ -56,15 +55,10 @@ func TestTransformDataURIFunction(t *testing.T) {
 `
 
 	got, err := TransformDataURI(body, func( /*idx int, */ attr string) string {
-		if !strings.Contains(attr, "data:image") {
-			t.Fatalf("must be contained data:image scheme")
-		}
-
+		require.Contains(t, attr, "data:image")
 		return fmt.Sprintf("replaced-%s", attr)
 	})
-	if err != nil {
-		t.Fatalf("must be returning non-nil error: %+#v", err)
-	}
+	require.NoError(t, err)
 
 	expect := `
 	<div>A</div>
@@ -78,9 +72,8 @@ func TestTransformDataURIFunction(t *testing.T) {
 	<div>C</div>
 `
 
-	if diff := cmp.Diff(gohtml.FormatWithLineNo(expect), gohtml.FormatWithLineNo(got)); diff != "" {
-		t.Fatalf("return value mismatch (-expect +got):\n%s", diff)
-	}
+	diff := cmp.Diff(gohtml.FormatWithLineNo(expect), gohtml.FormatWithLineNo(got))
+	require.Empty(t, diff)
 
 	t.Logf("Return: %+#v", got)
 }
@@ -101,9 +94,7 @@ func TestTransformDataURIFromTwiceImages(t *testing.T) {
 `
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(body))
-	if err != nil {
-		t.Fatalf("must be returning non-nil error: %+#v", err)
-	}
+	require.NoError(t, err)
 
 	doc.Find(selectorDataURI).Each(func(_ int, img *goquery.Selection) {
 		img.SetAttr("src", "replaced")
@@ -122,9 +113,8 @@ func TestTransformDataURIFromTwiceImages(t *testing.T) {
 	<div>C</div>
 `
 
-	if diff := cmp.Diff(gohtml.FormatWithLineNo(expect), gohtml.FormatWithLineNo(got)); diff != "" {
-		t.Fatalf("return value mismatch (-expect +got):\n%s", diff)
-	}
+	diff := cmp.Diff(gohtml.FormatWithLineNo(expect), gohtml.FormatWithLineNo(got))
+	require.Empty(t, diff)
 
 	t.Logf("Return: %+#v", got)
 }
@@ -136,9 +126,7 @@ func TestTransformDataURIFromEntireContent(t *testing.T) {
 	body := testIncludeDataURIHTML
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(body))
-	if err != nil {
-		t.Fatalf("must be returning non-nil error: %+#v", err)
-	}
+	require.NoError(t, err)
 
 	doc.Find(selectorDataURI).Each(func(_ int, img *goquery.Selection) {
 		img.SetAttr("src", "replaced")
@@ -414,9 +402,8 @@ func TestTransformDataURIFromEntireContent(t *testing.T) {
   <br/>
 </p>`
 
-	if diff := cmp.Diff(gohtml.FormatWithLineNo(expect), gohtml.FormatWithLineNo(got)); diff != "" {
-		t.Fatalf("return value mismatch (-expect +got):\n%s", diff)
-	}
+	diff := cmp.Diff(gohtml.FormatWithLineNo(expect), gohtml.FormatWithLineNo(got))
+	require.Empty(t, diff)
 
 	t.Logf("Return: %+#v", got)
 }
