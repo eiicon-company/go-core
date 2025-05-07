@@ -40,14 +40,10 @@ require (
 )
 
 require (
-	github.com/client9/misspell v0.3.4
 	github.com/gabriel-vasile/mimetype v1.4.5
 	github.com/lunemec/as v1.1.2
 	github.com/spf13/cast v1.6.0
-	github.com/sqs/goreturns v0.0.0-20181028201513-538ac6014518
 	github.com/volatiletech/null/v8 v8.1.2
-	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
-	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d
 )
 
 require (
@@ -99,6 +95,7 @@ require (
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
+	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240116215550-a9fa1716bcac // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240116215550-a9fa1716bcac // indirect

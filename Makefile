@@ -1,15 +1,6 @@
 .DEFAULT_GOAL := help
 
 SHELL := /bin/bash
-TOOL_BIN_DIR  ?= $(shell go env GOPATH)/bin
-GOLANGCI_LINT_VERSION := 2.0.2
-
-install-golangci-lint: | $(TOOL_BIN_DIR)/golangci-lint ## Install golangci-lint
-
-
-$(TOOL_BIN_DIR)/golangci-lint:
-	@rm -f $(TOOL_BIN_DIR)/golangci-lint
-	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOL_BIN_DIR) v$(GOLANGCI_LINT_VERSION)
 
 
 gomodule:  ## Tidy up Golang dependencies, see https://github.com/golang/go/wiki/Modules
@@ -29,21 +20,12 @@ gomodule-upgrade-patch:  ## Upgrade to use the latest patch releases (and add -t
 
 
 test:  ## Test to all of directories
-	AWS_REGION=ap-northeast-1 AWS_ACCESS_KEY_ID=1 AWS_SECRET_ACCESS_KEY=2 go test -mod=mod -cover -race ./...
+	AWS_REGION=ap-northeast-1 AWS_ACCESS_KEY_ID=1 AWS_SECRET_ACCESS_KEY=2 go test -cover -race ./...
 
 
-linter: $(TOOL_BIN_DIR)/golangci-lint ## Golang completely all of style checking
-	-$< run -c .golangci.yml --timeout 10m0s
+linter: ## Golang completely all of style checking
+	golangci-lint run --timeout 10m0s
 
-
-format:  ## Run go formater
-	@go install golang.org/x/tools/cmd/goimports 2> /dev/null
-	@make format-target target="data/" &
-	@make format-target target="util/"
-
-
-format-target:  ## Run go formater: ${target}
-	goimports -w ${target}
 
 circleci-validate:  ## Validate ./circleci/config.yml
 	circleci config validate

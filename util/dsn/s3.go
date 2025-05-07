@@ -58,7 +58,8 @@ func (dsn *S3DSN) URL(filename string) string {
 
 	uri, err := req.Presign(24 * 5 * time.Hour) // TODO: Auth URL: Public or Private URL
 	if err != nil {
-		return ""
+		panic(err)
+		// return ""
 	}
 
 	u, _ := url.Parse(uri) // TODO: Auth URL: Public or Private URL
