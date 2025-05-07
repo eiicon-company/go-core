@@ -4,56 +4,43 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/xerrors"
 )
 
 var (
-	// ensure to be changed
 	jwtSecretDefault = "****************"
-	// jwtSecret must be changed
 	jwtSecret = jwtSecretDefault
-	// jwtExpires is used as session key
 	jwtExpires = time.Hour * 24 * 90 // 3 months
-	// Domain is used s cookie domain
 	Domain = "localhost"
-	// SessionKey is used as session key
 	SessionKey = "_go_core_key"
-	// MaxAge is session max age
 	MaxAge = time.Hour * 24 * 75 // 2.5 months
 )
 
-// JwtTokenOption used as a generate token option
 type JwtTokenOption struct {
 	Expires time.Duration
 }
 
-// SetExpires set value
 func SetExpires(expires time.Duration) {
 	jwtExpires = expires
 }
 
-// SetSecret set value
 func SetSecret(secret string) {
 	jwtSecret = secret
 }
 
-// SetDomain set value
 func SetDomain(key string) {
 	Domain = key
 }
 
-// SetSessionKey set value
 func SetSessionKey(key string) {
 	SessionKey = key
 }
 
-// SetMaxAge set value
 func SetMaxAge(age time.Duration) {
 	MaxAge = age
 }
 
-// JwtToken returns jwt token with expires
 func JwtToken(data interface{}, option JwtTokenOption) (string, error) {
 	if jwtSecret == jwtSecretDefault {
 		return "", xerrors.New("must be changed default secret")
@@ -68,11 +55,9 @@ func JwtToken(data interface{}, option JwtTokenOption) (string, error) {
 		"exp":  time.Now().Add(expires).Unix(),
 		"iat":  time.Now().Unix(),
 	})
-	// Sign and get the complete encoded token as a string using the secret
 	return jwtToken.SignedString([]byte(jwtSecret))
 }
 
-// JwtParse returns parsed token as map
 func JwtParse(encrypted string) (interface{}, error) {
 	if jwtSecret == jwtSecretDefault {
 		return nil, xerrors.New("must be changed default secret")
