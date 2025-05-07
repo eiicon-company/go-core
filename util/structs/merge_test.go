@@ -48,14 +48,14 @@ func TestOverwriteMerge(t *testing.T) {
 	}
 
 	err := OverwriteMerge(dest, src1)
-	require.NoError(t, err, "must be nil: %+#v", err)
+	require.NoError(t, err)
 
-	require.Equal(t, 0, dest.ID, "invalid value: %+#v", dest)
-	require.Equal(t, 2, dest.StoreID, "invalid value: %+#v", dest)
-	require.Equal(t, 2, dest.ProvstoreID.Int, "invalid value: %+#v", dest)
-	require.False(t, dest.IsDeleted, "invalid value: %+#v", dest)
-	require.Equal(t, src1.DeletedAt.Time, dest.DeletedAt.Time, "invalid value: %+#v", dest)
-	require.False(t, dest.UpdatedAt.Equal(now), "invalid value: %+#v", dest)
+	require.Equal(t, 0, dest.ID)
+	require.Equal(t, 2, dest.StoreID)
+	require.Equal(t, 2, dest.ProvstoreID.Int)
+	require.False(t, dest.IsDeleted)
+	require.Equal(t, src1.DeletedAt.Time, dest.DeletedAt.Time)
+	require.False(t, dest.UpdatedAt.Equal(now))
 }
 
 func TestOverwriteMergeRestParameters(t *testing.T) {
@@ -87,14 +87,14 @@ func TestOverwriteMergeRestParameters(t *testing.T) {
 	}
 
 	err := OverwriteMerge(dest, src1, src2)
-	require.NoError(t, err, "must be nil: %+#v", err)
+	require.NoError(t, err)
 
-	require.Equal(t, 0, dest.ID, "invalid value: %+#v", dest)
-	require.Equal(t, 2, dest.StoreID, "invalid value: %+#v", dest)
-	require.Equal(t, 2, dest.ProvstoreID.Int, "invalid value: %+#v", dest)
-	require.False(t, dest.IsDeleted, "invalid value: %+#v", dest)
-	require.Equal(t, src1.DeletedAt.Time, dest.DeletedAt.Time, "invalid value: %+#v", dest)
-	require.Equal(t, "src2", dest.Name, "invalid value: %+#v", dest)
+	require.Equal(t, 0, dest.ID)
+	require.Equal(t, 2, dest.StoreID)
+	require.Equal(t, 2, dest.ProvstoreID.Int)
+	require.False(t, dest.IsDeleted)
+	require.Equal(t, src1.DeletedAt.Time, dest.DeletedAt.Time)
+	require.Equal(t, "src2", dest.Name)
 }
 
 func TestMerge(t *testing.T) {
@@ -123,13 +123,13 @@ func TestMerge(t *testing.T) {
 	}
 
 	err := Merge(dest, src1)
-	require.NoError(t, err, "must be nil: %+#v", err)
+	require.NoError(t, err)
 
-	require.Equal(t, 1, dest.ID, "invalid value: %+#v", dest)
-	require.Equal(t, 1, dest.StoreID, "invalid value: %+#v", dest)
-	require.Equal(t, 1, dest.ProvstoreID.Int, "invalid value: %+#v", dest)
-	require.True(t, dest.IsDeleted, "invalid value: %+#v", dest)
-	require.False(t, dest.DeletedAt.Time.Equal(now), "invalid value: %+#v", dest)
+	require.Equal(t, 1, dest.ID)
+	require.Equal(t, 1, dest.StoreID)
+	require.Equal(t, 1, dest.ProvstoreID.Int)
+	require.True(t, dest.IsDeleted)
+	require.False(t, dest.DeletedAt.Time.Equal(now))
 }
 
 func TestMergeRestParameters(t *testing.T) {
@@ -161,14 +161,14 @@ func TestMergeRestParameters(t *testing.T) {
 	}
 
 	err := Merge(dest, src1, src2)
-	require.NoError(t, err, "must be nil: %+#v", err)
+	require.NoError(t, err)
 
-	require.Equal(t, 1, dest.ID, "invalid value: %+#v", dest)
-	require.Equal(t, 1, dest.StoreID, "invalid value: %+#v", dest)
-	require.Equal(t, 1, dest.ProvstoreID.Int, "invalid value: %+#v", dest)
-	require.True(t, dest.IsDeleted, "invalid value: %+#v", dest)
-	require.False(t, dest.DeletedAt.Time.Equal(now), "invalid value: %+#v", dest)
-	require.Equal(t, "1", dest.Name, "invalid value: %+#v", dest)
+	require.Equal(t, 1, dest.ID)
+	require.Equal(t, 1, dest.StoreID)
+	require.Equal(t, 1, dest.ProvstoreID.Int)
+	require.True(t, dest.IsDeleted)
+	require.False(t, dest.DeletedAt.Time.Equal(now))
+	require.Equal(t, "1", dest.Name)
 }
 
 func TestMergeNil(t *testing.T) {
@@ -200,13 +200,13 @@ func TestMergeNil(t *testing.T) {
 	}
 
 	err := Merge(dest, src1, nil, src2)
-	require.NoError(t, err, "must be nil: %+#v", err)
+	require.NoError(t, err)
 
-	require.Equal(t, 1, dest.ID, "invalid value: %+#v", dest)
-	require.Equal(t, 1, dest.StoreID, "invalid value: %+#v", dest)
-	require.Equal(t, 1, dest.ProvstoreID.Int, "invalid value: %+#v", dest)
-	require.True(t, dest.IsDeleted, "invalid value: %+#v", dest)
-	require.False(t, dest.DeletedAt.Time.Equal(now), "invalid value: %+#v", dest)
-	require.Equal(t, "1", dest.Name, "invalid value: %+#v", dest)
-	require.Equal(t, now, dest.UpdatedAt, "invalid value: %+#v", dest)
+	require.Equal(t, 1, dest.ID)
+	require.Equal(t, 1, dest.StoreID)
+	require.Equal(t, 1, dest.ProvstoreID.Int)
+	require.True(t, dest.IsDeleted)
+	require.False(t, dest.DeletedAt.Time.Equal(now))
+	require.Equal(t, "1", dest.Name)
+	require.Equal(t, now, dest.UpdatedAt)
 }

@@ -1,7 +1,6 @@
 package html
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -38,7 +37,7 @@ func TestSanitize(t *testing.T) {
 `)
 
 	diff := cmp.Diff(expect, got)
-	require.Empty(t, diff, "return value mismatch (-expect +got):\n%s", diff)
+	require.Empty(t, diff)
 
 	t.Logf("Return: %+#v", got)
 }
@@ -46,7 +45,7 @@ func TestSanitize(t *testing.T) {
 func TestSanitizeExceptDataURI(t *testing.T) {
 	got := Sanitize(testHTMLImageTag)
 
-	require.Contains(t, got, "img", "dataURI is gone: %+#v", got)
+	require.Contains(t, got, "img")
 
 	// t.Logf("Return: %+#v", got)
 }
