@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSanitize(t *testing.T) {
@@ -36,9 +37,8 @@ func TestSanitize(t *testing.T) {
 </div>
 `)
 
-	if diff := cmp.Diff(expect, got); diff != "" {
-		t.Fatalf("return value mismatch (-expect +got):\n%s", diff)
-	}
+	diff := cmp.Diff(expect, got)
+	require.Empty(t, diff, "return value mismatch (-expect +got):\n%s", diff)
 
 	t.Logf("Return: %+#v", got)
 }
@@ -46,9 +46,7 @@ func TestSanitize(t *testing.T) {
 func TestSanitizeExceptDataURI(t *testing.T) {
 	got := Sanitize(testHTMLImageTag)
 
-	if !strings.Contains(got, "img") {
-		t.Fatalf("dataURI is gone: %+#v", got)
-	}
+	require.Contains(t, got, "img", "dataURI is gone: %+#v", got)
 
 	// t.Logf("Return: %+#v", got)
 }

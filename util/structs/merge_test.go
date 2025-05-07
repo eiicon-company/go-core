@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/volatiletech/null/v8"
 )
 
@@ -46,28 +47,15 @@ func TestOverwriteMerge(t *testing.T) {
 		UpdatedAt:   time.Now().Add(1 * time.Hour),
 	}
 
-	if err := OverwriteMerge(dest, src1); err != nil {
-		t.Fatalf("must be nil: %+#v", err)
-	}
+	err := OverwriteMerge(dest, src1)
+	require.NoError(t, err, "must be nil: %+#v", err)
 
-	if dest.ID != 0 {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.StoreID != 2 {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.ProvstoreID.Int != 2 {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.IsDeleted {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.DeletedAt.Time != src1.DeletedAt.Time {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.UpdatedAt.Equal(now) {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
+	require.Equal(t, 0, dest.ID, "invalid value: %+#v", dest)
+	require.Equal(t, 2, dest.StoreID, "invalid value: %+#v", dest)
+	require.Equal(t, 2, dest.ProvstoreID.Int, "invalid value: %+#v", dest)
+	require.False(t, dest.IsDeleted, "invalid value: %+#v", dest)
+	require.Equal(t, src1.DeletedAt.Time, dest.DeletedAt.Time, "invalid value: %+#v", dest)
+	require.False(t, dest.UpdatedAt.Equal(now), "invalid value: %+#v", dest)
 }
 
 func TestOverwriteMergeRestParameters(t *testing.T) {
@@ -98,28 +86,15 @@ func TestOverwriteMergeRestParameters(t *testing.T) {
 		Name: "src2",
 	}
 
-	if err := OverwriteMerge(dest, src1, src2); err != nil {
-		t.Fatalf("must be nil: %+#v", err)
-	}
+	err := OverwriteMerge(dest, src1, src2)
+	require.NoError(t, err, "must be nil: %+#v", err)
 
-	if dest.ID != 0 {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.StoreID != 2 {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.ProvstoreID.Int != 2 {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.IsDeleted {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.DeletedAt.Time != src1.DeletedAt.Time {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.Name != "src2" {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
+	require.Equal(t, 0, dest.ID, "invalid value: %+#v", dest)
+	require.Equal(t, 2, dest.StoreID, "invalid value: %+#v", dest)
+	require.Equal(t, 2, dest.ProvstoreID.Int, "invalid value: %+#v", dest)
+	require.False(t, dest.IsDeleted, "invalid value: %+#v", dest)
+	require.Equal(t, src1.DeletedAt.Time, dest.DeletedAt.Time, "invalid value: %+#v", dest)
+	require.Equal(t, "src2", dest.Name, "invalid value: %+#v", dest)
 }
 
 func TestMerge(t *testing.T) {
@@ -147,25 +122,14 @@ func TestMerge(t *testing.T) {
 		IsDeleted:   false,
 	}
 
-	if err := Merge(dest, src1); err != nil {
-		t.Fatalf("must be nil: %+#v", err)
-	}
+	err := Merge(dest, src1)
+	require.NoError(t, err, "must be nil: %+#v", err)
 
-	if dest.ID != 1 {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.StoreID != 1 {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.ProvstoreID.Int != 1 {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if !dest.IsDeleted {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.DeletedAt.Time.Equal(now) {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
+	require.Equal(t, 1, dest.ID, "invalid value: %+#v", dest)
+	require.Equal(t, 1, dest.StoreID, "invalid value: %+#v", dest)
+	require.Equal(t, 1, dest.ProvstoreID.Int, "invalid value: %+#v", dest)
+	require.True(t, dest.IsDeleted, "invalid value: %+#v", dest)
+	require.False(t, dest.DeletedAt.Time.Equal(now), "invalid value: %+#v", dest)
 }
 
 func TestMergeRestParameters(t *testing.T) {
@@ -196,28 +160,15 @@ func TestMergeRestParameters(t *testing.T) {
 		Name: "src2",
 	}
 
-	if err := Merge(dest, src1, src2); err != nil {
-		t.Fatalf("must be nil: %+#v", err)
-	}
+	err := Merge(dest, src1, src2)
+	require.NoError(t, err, "must be nil: %+#v", err)
 
-	if dest.ID != 1 {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.StoreID != 1 {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.ProvstoreID.Int != 1 {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if !dest.IsDeleted {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.DeletedAt.Time.Equal(now) {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.Name != "1" {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
+	require.Equal(t, 1, dest.ID, "invalid value: %+#v", dest)
+	require.Equal(t, 1, dest.StoreID, "invalid value: %+#v", dest)
+	require.Equal(t, 1, dest.ProvstoreID.Int, "invalid value: %+#v", dest)
+	require.True(t, dest.IsDeleted, "invalid value: %+#v", dest)
+	require.False(t, dest.DeletedAt.Time.Equal(now), "invalid value: %+#v", dest)
+	require.Equal(t, "1", dest.Name, "invalid value: %+#v", dest)
 }
 
 func TestMergeNil(t *testing.T) {
@@ -248,29 +199,14 @@ func TestMergeNil(t *testing.T) {
 		Name: "src2",
 	}
 
-	if err := Merge(dest, src1, nil, src2); err != nil {
-		t.Fatalf("must be nil: %+#v", err)
-	}
+	err := Merge(dest, src1, nil, src2)
+	require.NoError(t, err, "must be nil: %+#v", err)
 
-	if dest.ID != 1 {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.StoreID != 1 {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.ProvstoreID.Int != 1 {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if !dest.IsDeleted {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.DeletedAt.Time.Equal(now) {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.Name != "1" {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
-	if dest.UpdatedAt != now {
-		t.Fatalf("invalid value: %+#v", dest)
-	}
+	require.Equal(t, 1, dest.ID, "invalid value: %+#v", dest)
+	require.Equal(t, 1, dest.StoreID, "invalid value: %+#v", dest)
+	require.Equal(t, 1, dest.ProvstoreID.Int, "invalid value: %+#v", dest)
+	require.True(t, dest.IsDeleted, "invalid value: %+#v", dest)
+	require.False(t, dest.DeletedAt.Time.Equal(now), "invalid value: %+#v", dest)
+	require.Equal(t, "1", dest.Name, "invalid value: %+#v", dest)
+	require.Equal(t, now, dest.UpdatedAt, "invalid value: %+#v", dest)
 }

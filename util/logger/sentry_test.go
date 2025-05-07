@@ -6,6 +6,8 @@ import (
 	"log"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSentryNoLevel(t *testing.T) {
@@ -15,12 +17,8 @@ func TestSentryNoLevel(t *testing.T) {
 	setup(out)
 
 	Println("abcdefg")
-	if !strings.HasSuffix(out.String(), "abcdefg\n") {
-		t.Errorf("Miss match value: %s", out.String())
-	}
-	if strings.Contains(out.String(), "[INFO]") {
-		t.Errorf("Miss match value: %s", out.String())
-	}
+	require.True(t, strings.HasSuffix(out.String(), "abcdefg\n"), "Miss match value: %s", out.String())
+	require.False(t, strings.Contains(out.String(), "[INFO]"), "Miss match value: %s", out.String())
 	out.Reset()
 }
 
@@ -32,12 +30,8 @@ func TestSentryPanic(t *testing.T) {
 
 	defer func() {
 		if err := recover(); err != nil {
-			if !strings.HasSuffix(out.String(), "nonononon\n") {
-				t.Errorf("Miss match value: %s", out.String())
-			}
-			if !strings.Contains(out.String(), "[PANIC]") {
-				t.Errorf("Miss match value: %s", out.String())
-			}
+			require.True(t, strings.HasSuffix(out.String(), "nonononon\n"), "Miss match value: %s", out.String())
+			require.True(t, strings.Contains(out.String(), "[PANIC]"), "Miss match value: %s", out.String())
 			out.Reset()
 		}
 	}()
@@ -53,12 +47,8 @@ func TestSentryCritical(t *testing.T) {
 
 	C("ldkdkdkdks")
 
-	if !strings.HasSuffix(out.String(), "ldkdkdkdks\n") {
-		t.Errorf("Miss match value: %s", out.String())
-	}
-	if !strings.Contains(out.String(), "[CRITICAL]") {
-		t.Errorf("Miss match value: %s", out.String())
-	}
+	require.True(t, strings.HasSuffix(out.String(), "ldkdkdkdks\n"), "Miss match value: %s", out.String())
+	require.True(t, strings.Contains(out.String(), "[CRITICAL]"), "Miss match value: %s", out.String())
 	out.Reset()
 }
 
@@ -70,12 +60,8 @@ func TestSentryError(t *testing.T) {
 
 	E("lkerja;we")
 
-	if !strings.HasSuffix(out.String(), "lkerja;we\n") {
-		t.Errorf("Miss match value: %s", out.String())
-	}
-	if !strings.Contains(out.String(), "[ERROR]") {
-		t.Errorf("Miss match value: %s", out.String())
-	}
+	require.True(t, strings.HasSuffix(out.String(), "lkerja;we\n"), "Miss match value: %s", out.String())
+	require.True(t, strings.Contains(out.String(), "[ERROR]"), "Miss match value: %s", out.String())
 	out.Reset()
 }
 
@@ -87,12 +73,8 @@ func TestSentryWarn(t *testing.T) {
 
 	W("jrlkaefj")
 
-	if !strings.HasSuffix(out.String(), "jrlkaefj\n") {
-		t.Errorf("Miss match value: %s", out.String())
-	}
-	if !strings.Contains(out.String(), "[WARN]") {
-		t.Errorf("Miss match value: %s", out.String())
-	}
+	require.True(t, strings.HasSuffix(out.String(), "jrlkaefj\n"), "Miss match value: %s", out.String())
+	require.True(t, strings.Contains(out.String(), "[WARN]"), "Miss match value: %s", out.String())
 	out.Reset()
 }
 
@@ -103,12 +85,8 @@ func TestSentryInfo(t *testing.T) {
 	setup(out)
 
 	Infoln("abcdefg")
-	if !strings.HasSuffix(out.String(), "abcdefg\n") {
-		t.Errorf("Miss match value: %s", out.String())
-	}
-	if !strings.Contains(out.String(), "[INFO]") {
-		t.Errorf("Miss match value: %s", out.String())
-	}
+	require.True(t, strings.HasSuffix(out.String(), "abcdefg\n"), "Miss match value: %s", out.String())
+	require.True(t, strings.Contains(out.String(), "[INFO]"), "Miss match value: %s", out.String())
 	out.Reset()
 }
 
@@ -121,12 +99,8 @@ func TestSentryDebug(t *testing.T) {
 	isDebug = true
 	D("040itaokwp")
 
-	if !strings.HasSuffix(out.String(), "040itaokwp\n") {
-		t.Errorf("Miss match value: %s", out.String())
-	}
-	if !strings.Contains(out.String(), "[DEBUG]") {
-		t.Errorf("Miss match value: %s", out.String())
-	}
+	require.True(t, strings.HasSuffix(out.String(), "040itaokwp\n"), "Miss match value: %s", out.String())
+	require.True(t, strings.Contains(out.String(), "[DEBUG]"), "Miss match value: %s", out.String())
 	out.Reset()
 	isDebug = false
 }
@@ -139,12 +113,8 @@ func TestSentryTODO(t *testing.T) {
 
 	T("lk2j3wr")
 
-	if !strings.HasSuffix(out.String(), "lk2j3wr\n") {
-		t.Errorf("Miss match value: %s", out.String())
-	}
-	if !strings.Contains(out.String(), "[TODO]") {
-		t.Errorf("Miss match value: %s", out.String())
-	}
+	require.True(t, strings.HasSuffix(out.String(), "lk2j3wr\n"), "Miss match value: %s", out.String())
+	require.True(t, strings.Contains(out.String(), "[TODO]"), "Miss match value: %s", out.String())
 	out.Reset()
 }
 
