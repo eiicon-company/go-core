@@ -35,6 +35,8 @@
 
           gnumake
 
+          actionlint
+
           circleci-cli
           nil # nix lsp
           nixfmt-rfc-style
