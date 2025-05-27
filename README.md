@@ -5,7 +5,6 @@
 - [Direnv](https://direnv.net/)
 
 ### Runtime
-- mozjpeg
 - [mozjpeg](https://github.com/mozilla/mozjpeg)
 - [pngquant](https://github.com/kornelski/pngquant)
 - [gifsicle](https://github.com/kohler/gifsicle)

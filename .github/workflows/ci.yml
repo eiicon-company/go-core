@@ -15,13 +15,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: DeterminateSystems/nix-installer-action@main
+
+    - uses: nixbuild/nix-quick-install-action@v30
       with:
-        extra-conf: |
+        nix_version: 2.26.1
+        nix_conf: |
+          substituters = https://cache.nixos.org
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+          always-allow-substitutes = true
+          keep-env-derivations = true
+          keep-outputs = true
+          max-jobs = auto
           cores = 0
-    - uses: rrbutani/use-nix-shell-action@v1
+
+    - uses: nix-community/cache-nix-action@v6
       with:
-        devShell: .#
+        primary-key: v1-nix-cache-${{ runner.os }}-${{ github.event.repository.name }}-${{ hashFiles('flake.lock') }}
+        restore-prefixes-first-match: v1-nix-cache-${{ runner.os }}-${{ github.event.repository.name }}-
+
+    - uses: nicknovitski/nix-develop@v1
+      with:
+        arguments: .#
 
     - name: Lint
       run: |
