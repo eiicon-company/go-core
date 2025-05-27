@@ -26,6 +26,7 @@ jobs:
           keep-outputs = true
           extra-experimental-features = ca-derivations
           cores = 0
+          extra-experimental-features = nix-command flakes
 
     - uses: nix-community/cache-nix-action@v6
       with:
