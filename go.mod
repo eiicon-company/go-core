@@ -31,7 +31,7 @@ require (
 	github.com/volatiletech/randomize v0.0.1
 	github.com/volatiletech/sqlboiler/v4 v4.16.0
 	github.com/yosssi/gohtml v0.0.0-20201013000340-ee4748c638f4
-	go.uber.org/dig v1.17.1
+	go.uber.org/dig v1.19.0
 	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/oauth2 v0.16.0
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028
