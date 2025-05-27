@@ -15,13 +15,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: DeterminateSystems/nix-installer-action@main
+
+    - uses: cachix/install-nix-action@v31
       with:
-        extra-conf: |
+        install_options: --no-daemon
+        extra_nix_config: |
+          substituters = https://cache.nixos.org/ https://nix-community.cachix.org https://cache.iog.io
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=
+          keep-env-derivations = true
+          keep-outputs = true
+          extra-experimental-features = ca-derivations nix-command flakes
           cores = 0
-    - uses: rrbutani/use-nix-shell-action@v1
+
+    - uses: nix-community/cache-nix-action@v6
       with:
-        devShell: .#
+        primary-key: v1-nix-cache-${{ runner.os }}-${{ github.event.repository.name }}-${{ hashFiles('flake.lock') }}
+        restore-prefixes-first-match: v1-nix-cache-${{ runner.os }}-${{ github.event.repository.name }}-
+
+    - uses: nicknovitski/nix-develop@v1
+      with:
+        arguments: .#
 
     - name: Lint
       run: |
