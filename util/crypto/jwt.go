@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/xerrors"
 )
 
@@ -65,8 +65,8 @@ func JwtToken(data interface{}, option JwtTokenOption) (string, error) {
 	}
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"data": data,
-		"exp":  time.Now().Add(expires).Unix(),
-		"iat":  time.Now().Unix(),
+		"exp":  jwt.NewNumericDate(time.Now().Add(expires)),
+		"iat":  jwt.NewNumericDate(time.Now()),
 	})
 	// Sign and get the complete encoded token as a string using the secret
 	return jwtToken.SignedString([]byte(jwtSecret))
