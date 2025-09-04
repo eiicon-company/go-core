@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -16,14 +15,12 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/go-sql-driver/mysql"
-	dlmredis "github.com/gomodule/redigo/redis"
-	radix "github.com/mediocregopher/radix/v3"
 	"github.com/olivere/elastic/v7"
+	redis "github.com/redis/go-redis/v9"
 	proxy "github.com/shogo82148/go-sql-proxy"
 	"github.com/spf13/cast"
 
 	"github.com/eiicon-company/go-core/util/dlm"
-	"github.com/eiicon-company/go-core/util/dsn"
 	"github.com/eiicon-company/go-core/util/logger"
 )
 
@@ -202,83 +199,43 @@ func esConn(env Environment, op ...elastic.ClientOptionFunc) (*elastic.Client, e
 }
 
 // RedisConn returns established connection
-func RedisConn(env Environment) (*radix.Pool, error) {
+func RedisConn(env Environment) (*redis.Client, error) {
 	return SelectRedisConn(env.EnvString("RedisURI"))
 }
 
 // SelectRedisConn returns established connection
-func SelectRedisConn(uri string) (*radix.Pool, error) {
-	dr, err := dsn.Redis(uri)
+func SelectRedisConn(uri string) (*redis.Client, error) {
+	opt, err := redis.ParseURL(uri)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse redis dsn <%s>: %s", uri, err)
 	}
 
-	selectDB, err := strconv.Atoi(dr.DB)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse redis db number <%s>: %s", uri, err)
-	}
+	rdb := redis.NewClient(opt)
 
-	// this is a ConnFunc which will set up a connection which is authenticated
-	// and has a 1 minute timeout on all operations
-	connFunc := func(network, addr string) (radix.Conn, error) {
-		return radix.Dial(network, addr,
-			radix.DialTimeout(time.Second*10),
-			radix.DialSelectDB(selectDB),
-		)
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	p, err := radix.NewPool("tcp", dr.HostPort, 10, radix.PoolConnFunc(connFunc))
-	if err != nil {
+	if _, err := rdb.Ping(ctx).Result(); err != nil {
 		return nil, fmt.Errorf("uninitialized redis client <%s>: %s", uri, err)
 	}
 
-	msg := "[INFO] the redis@v3 connection established <%s>, version UNKNOWN"
+	msg := "[INFO] the redis connection established <%s>, version UNKNOWN"
 	logger.Printf(msg, uri)
 
-	return p, err
+	return rdb, nil
 }
 
 // DLMConn returns distributed lock manager pool
 func DLMConn(env Environment) (*dlm.DLM, error) {
-	dr, err := dsn.Redis(env.EnvString("DLMURI"))
+	rdb, err := SelectRedisConn(env.EnvString("DLMURI"))
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse DLM dsn <%s>: %s", env.EnvString("DLMURI"), err)
-	}
-
-	pool := &dlmredis.Pool{
-		MaxIdle:     3,
-		IdleTimeout: 240 * time.Second,
-		Dial: func() (dlmredis.Conn, error) {
-			c, err := dlmredis.Dial("tcp", dr.HostPort)
-			if err != nil {
-				return nil, err
-			}
-			if _, err := c.Do("SELECT", dr.DB); err != nil {
-				c.Close()
-				return nil, err
-			}
-			return c, nil
-		},
-		TestOnBorrow: func(c dlmredis.Conn, t time.Time) error {
-			if time.Since(t) < time.Minute {
-				return nil
-			}
-			_, err := c.Do("PING")
-			return err
-		},
-	}
-
-	conn := pool.Get()
-	defer conn.Close()
-
-	if _, err := dlmredis.String(conn.Do("PING")); err != nil {
-		return nil, fmt.Errorf("uninitialized DLM client <%s>: %s", env.EnvString("DLMURI"), err)
+		return nil, err
 	}
 
 	msg := "[INFO] the DLM(distributed lock) connection established <%s>, version UNKNOWN"
 	logger.Printf(msg, env.EnvString("DLMURI"))
 
-	return &dlm.DLM{Pool: pool}, nil
+	return &dlm.DLM{Client: rdb}, nil
 }
 
 // BQConn returns err

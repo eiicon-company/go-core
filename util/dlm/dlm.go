@@ -3,48 +3,45 @@ package dlm
 import (
 	"time"
 
-	"github.com/go-redsync/redsync"
-	"github.com/gomodule/redigo/redis"
+	"github.com/go-redsync/redsync/v4"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
+	"github.com/hako/branca"
+	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 )
 
-type (
-	// DLM is called distributed lock manager.
-	DLM struct {
-		Pool *redis.Pool
-	}
-)
-
-// Mutex returns MUTual EXclusion
-func (d *DLM) Mutex(name string, expires time.Duration) *redsync.Mutex {
-	rs := redsync.New([]redsync.Pool{d.Pool})
-	return rs.NewMutex(name, redsync.SetExpiry(expires))
+// DLM is distributed lock manager
+type DLM struct {
+	Client *redis.Client
 }
 
-// MutexOptions returns MUTual EXclusion
-func (d *DLM) MutexOptions(name string, options ...redsync.Option) *redsync.Mutex {
-	rs := redsync.New([]redsync.Pool{d.Pool})
-	return rs.NewMutex(name, options...)
+// New returns a new DLM.
+func (d *DLM) New() *redsync.Redsync {
+	pool := goredis.NewPool(d.Client)
+	return redsync.New(pool)
 }
 
-// Close dlm connection pooling
-func (d *DLM) Close() error {
-	//
-	// return d.Pool.Close() // never close cause of one pool is used right now
-	//
-	return nil
+// Lock is lock
+func (d *DLM) Lock(key string, expired time.Duration) (*redsync.Mutex, error) {
+	rs := d.New()
+	mutex := rs.NewMutex(key, redsync.WithExpiry(expired))
+	return mutex, mutex.Lock()
 }
 
-// Exists checks a data is existence or not.
-func (d *DLM) Exists(name string) (bool, error) {
-	conn := d.Pool.Get()
-	defer conn.Close()
+// Unlock is unlock
+func (d *DLM) Unlock(mutex *redsync.Mutex) (bool, error) {
+	return mutex.Unlock()
+}
 
-	reply, err := redis.String(conn.Do("GET", name))
-	if err != nil && err == redis.ErrNil {
-		return false, nil
-	}
+// Branca is a token generator
+func (d *DLM) Branca(key string, expired time.Duration) (string, error) {
+	mutex, err := d.Lock(key, expired)
 	if err != nil {
-		return false, err
+		return "", errors.Wrap(err, "faild to lock")
 	}
-	return reply != "", nil
+	defer d.Unlock(mutex)
+
+	br := branca.NewBranca("12345678901234567890123456789012")
+	br.SetTTL(uint32(expired.Seconds()))
+	return br.EncodeToString(key)
 }

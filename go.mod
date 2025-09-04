@@ -10,18 +10,15 @@ require (
 	github.com/aws/aws-sdk-go v1.50.0
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/getsentry/sentry-go v0.26.0
-	github.com/go-redsync/redsync v1.4.2
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/imdario/mergo v0.3.16
 	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible
-	github.com/mediocregopher/radix/v3 v3.8.1
 	github.com/microcosm-cc/bluemonday v1.0.26
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/oleiade/reflections v1.0.1
@@ -40,8 +37,12 @@ require (
 
 require (
 	github.com/gabriel-vasile/mimetype v1.4.5
+	github.com/go-redsync/redsync/v4 v4.13.0
 	github.com/golang-jwt/jwt/v5 v5.2.3
+	github.com/hako/branca v0.0.0-20200807062402-6052ac720505
 	github.com/lunemec/as v1.1.2
+	github.com/pkg/errors v0.9.1
+	github.com/redis/go-redis/v9 v9.13.0
 	github.com/spf13/cast v1.6.0
 	github.com/volatiletech/null/v8 v8.1.2
 )
@@ -54,7 +55,10 @@ require (
 	github.com/apache/arrow/go/v12 v12.0.1 // indirect
 	github.com/apache/thrift v0.19.0 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/eknkc/basex v1.0.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/friendsofgo/errors v0.9.2 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
@@ -77,7 +81,6 @@ require (
 	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8 // indirect
 	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/volatiletech/inflect v0.0.1 // indirect
 	github.com/volatiletech/strmangle v0.0.6 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
