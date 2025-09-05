@@ -14,6 +14,7 @@ import (
 	"cloud.google.com/go/bigquery"
 
 	"github.com/getsentry/sentry-go"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/go-sql-driver/mysql"
 	"github.com/olivere/elastic/v7"
 	redis "github.com/redis/go-redis/v9"
@@ -210,6 +211,8 @@ func SelectRedisConn(uri string) (*redis.Client, error) {
 		return nil, fmt.Errorf("failed to parse redis dsn <%s>: %s", uri, err)
 	}
 
+	opt.DialTimeout = time.Second * 10
+	opt.MaxIdleConns = 10
 	rdb := redis.NewClient(opt)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -231,11 +234,12 @@ func DLMConn(env Environment) (*dlm.DLM, error) {
 	if err != nil {
 		return nil, err
 	}
+	pool := goredis.NewPool(rdb)
 
 	msg := "[INFO] the DLM(distributed lock) connection established <%s>, version UNKNOWN"
 	logger.Printf(msg, env.EnvString("DLMURI"))
 
-	return &dlm.DLM{Client: rdb}, nil
+	return &dlm.DLM{Pool: pool}, nil
 }
 
 // BQConn returns err
