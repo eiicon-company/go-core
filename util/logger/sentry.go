@@ -128,7 +128,7 @@ func Todoln(args ...interface{}) {
 }
 
 var (
-	T = Todof // alias for Todof
+	T    = Todof            // alias for Todof
 	TCtx = TodofWithContext // alias for TodofWithContext
 )
 
@@ -150,7 +150,7 @@ func DebugfWithContext(ctx context.Context, format string, args ...interface{}) 
 
 // DebuglnWithContext outputs ...
 func DebuglnWithContext(ctx context.Context, args ...interface{}) {
-		debugdeps(getSender(ctx), 3, fmt.Sprintln(args...))
+	debugdeps(getSender(ctx), 3, fmt.Sprintln(args...))
 }
 
 // Debugf outputs ...
@@ -206,7 +206,6 @@ var (
 	ICtx = InfofWithContext // alias for InfofWithContext
 	I    = Infof            // alias for Infof
 )
-
 
 func infodeps(fn MessageFunc, deps int, s string) {
 	_ = infoLogger.Output(deps, s)
