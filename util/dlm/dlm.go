@@ -29,10 +29,8 @@ func (d *DLM) MutexOptions(name string, options ...redsync.Option) *redsync.Mute
 }
 
 // Close dlm connection pooling
+// XXX: deprecated. do not need to close cause of one pool is used right now
 func (d *DLM) Close() error {
-	//
-	// return d.Pool.Close() // never close cause of one pool is used right now
-	//
 	return nil
 }
 
