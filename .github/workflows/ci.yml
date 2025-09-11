@@ -22,6 +22,10 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - uses: nicknovitski/nix-develop@v1
 
+      - uses: hoverkraft-tech/compose-action@v2
+        with:
+          compose-file: compose.yml
+
       - name: Lint
         run: |
           make linter

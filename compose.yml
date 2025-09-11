@@ -1,0 +1,13 @@
+services:
+  redis:
+    image: redis:8
+    command: redis-server --appendonly yes
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 2s
+      retries: 8640
+      start_period: 20s
