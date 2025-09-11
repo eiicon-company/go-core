@@ -1,15 +1,6 @@
 .DEFAULT_GOAL := help
 
 SHELL := /bin/bash
-TOOL_BIN_DIR  ?= $(shell go env GOPATH)/bin
-GOLANGCI_LINT_VERSION := 2.0.2
-
-install-golangci-lint: | $(TOOL_BIN_DIR)/golangci-lint ## Install golangci-lint
-
-
-$(TOOL_BIN_DIR)/golangci-lint:
-	@rm -f $(TOOL_BIN_DIR)/golangci-lint
-	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOL_BIN_DIR) v$(GOLANGCI_LINT_VERSION)
 
 
 gomodule:  ## Tidy up Golang dependencies, see https://github.com/golang/go/wiki/Modules
@@ -44,9 +35,6 @@ format:  ## Run go formater
 
 format-target:  ## Run go formater: ${target}
 	goimports -w ${target}
-
-circleci-validate:  ## Validate ./circleci/config.yml
-	circleci config validate
 
 
 help:  ## Show all of tasks
