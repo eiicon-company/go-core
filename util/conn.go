@@ -60,8 +60,7 @@ func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
 	var ver string
 	logger.D("%s", db.QueryRow("SELECT @@version").Scan(&ver))
 
-	msg := "[INFO] the mysql connection established <%s>, version %s"
-	logger.Printf(msg, strings.Join(strings.Split(dsn, "@")[1:], ""), ver)
+	logger.Infof("the mysql connection established <%s>, version %s", strings.Join(strings.Split(dsn, "@")[1:], ""), ver)
 
 	return db, nil
 }
@@ -73,10 +72,10 @@ func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
 // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
 func DBSlowQuery(dialect string, period time.Duration) {
 	sql.Register(dialect, proxy.NewProxyContext(&mysql.MySQLDriver{}, &proxy.HooksContext{
-		PreExec: func(_ context.Context, _ *proxy.Stmt, _ []driver.NamedValue) (interface{}, error) {
+		PreExec: func(_ context.Context, _ *proxy.Stmt, _ []driver.NamedValue) (any, error) {
 			return time.Now(), nil
 		},
-		PostExec: func(ctx context.Context, dt interface{}, stmt *proxy.Stmt, args []driver.NamedValue, _ driver.Result, _ error) error {
+		PostExec: func(ctx context.Context, dt any, stmt *proxy.Stmt, args []driver.NamedValue, _ driver.Result, _ error) error {
 			startTime := dt.(time.Time)
 			since := time.Since(startTime)
 
@@ -86,7 +85,7 @@ func DBSlowQuery(dialect string, period time.Duration) {
 					s.EndTime = time.Now().Add(since)
 					s.Description = stmt.QueryString
 
-					data := map[string]interface{}{}
+					data := map[string]any{}
 					for i, arg := range args {
 						if i > 50 {
 							break
@@ -108,10 +107,10 @@ func DBSlowQuery(dialect string, period time.Duration) {
 
 			return nil
 		},
-		PreQuery: func(_ context.Context, _ *proxy.Stmt, _ []driver.NamedValue) (interface{}, error) {
+		PreQuery: func(_ context.Context, _ *proxy.Stmt, _ []driver.NamedValue) (any, error) {
 			return time.Now(), nil
 		},
-		PostQuery: func(ctx context.Context, dt interface{}, stmt *proxy.Stmt, args []driver.NamedValue, _ driver.Rows, _ error) error {
+		PostQuery: func(ctx context.Context, dt any, stmt *proxy.Stmt, args []driver.NamedValue, _ driver.Rows, _ error) error {
 			startTime := dt.(time.Time)
 			since := time.Since(startTime)
 
@@ -121,7 +120,7 @@ func DBSlowQuery(dialect string, period time.Duration) {
 					s.EndTime = time.Now().Add(since)
 					s.Description = stmt.QueryString
 
-					data := map[string]interface{}{}
+					data := map[string]any{}
 					for i, arg := range args {
 						if i > 50 {
 							break
@@ -185,17 +184,17 @@ func ESBulkConn(env Environment) (*elastic.Client, error) {
 }
 
 func esConn(env Environment, op ...elastic.ClientOptionFunc) (*elastic.Client, error) {
+	url := env.EnvString("ESURL")
 	es, err := elastic.NewClient(op...)
 	if err != nil {
-		return nil, fmt.Errorf("uninitialized es client <%s>: %s", env.EnvString("ESURL"), err)
+		return nil, fmt.Errorf("uninitialized es client <%s>: %w", url, err)
 	}
-	ver, err := es.ElasticsearchVersion(env.EnvString("ESURL"))
+	ver, err := es.ElasticsearchVersion(url)
 	if err != nil {
-		return nil, fmt.Errorf("error got es version <%s>: %s", env.EnvString("ESURL"), err)
+		return nil, fmt.Errorf("error got es version <%s>: %w", url, err)
 	}
 
-	msg := "[INFO] the elasticsearch connection established <%s>, version %s"
-	logger.Printf(msg, env.EnvString("ESURL"), ver)
+	logger.Printf("the elasticsearch connection established <%s>, version %s", url, ver)
 	return es, nil
 }
 
@@ -208,7 +207,7 @@ func RedisConn(env Environment) (*redis.Client, error) {
 func SelectRedisConn(uri string) (*redis.Client, error) {
 	opt, err := redis.ParseURL(uri)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse redis dsn <%s>: %s", uri, err)
+		return nil, fmt.Errorf("failed to parse redis dsn <%s>: %w", uri, err)
 	}
 
 	opt.DialTimeout = time.Second * 10
@@ -222,36 +221,35 @@ func SelectRedisConn(uri string) (*redis.Client, error) {
 		return nil, fmt.Errorf("uninitialized redis client <%s>: %s", uri, err)
 	}
 
-	msg := "[INFO] the redis connection established <%s>, version UNKNOWN"
-	logger.Printf(msg, uri)
+	logger.Infof("the redis connection established <%s>", uri)
 
 	return rdb, nil
 }
 
 // DLMConn returns distributed lock manager pool
 func DLMConn(env Environment) (*dlm.DLM, error) {
-	rdb, err := SelectRedisConn(env.EnvString("DLMURI"))
+	uri := env.EnvString("DLMURI")
+	rdb, err := SelectRedisConn(uri)
 	if err != nil {
 		return nil, err
 	}
 	pool := goredis.NewPool(rdb)
 
-	msg := "[INFO] the DLM(distributed lock) connection established <%s>, version UNKNOWN"
-	logger.Printf(msg, env.EnvString("DLMURI"))
+	logger.Infof("the DLM(distributed lock) connection established <%s>", uri)
 
 	return &dlm.DLM{Pool: pool}, nil
 }
 
 // BQConn returns err
 func BQConn(env Environment) error {
+	pid := env.EnvString("GCProject")
 	ctx := context.Background()
-	client, err := bigquery.NewClient(ctx, env.EnvString("GCProject"))
+	client, err := bigquery.NewClient(ctx, pid)
 	if err != nil {
-		return fmt.Errorf("there is no project in bigquery <%s>: %s", env.EnvString("GCProject"), err)
+		return fmt.Errorf("there is no project in bigquery <%s>: %w", pid, err)
 	}
 	defer client.Close()
 
-	msg := "[INFO] the bigquery connection established <%s>"
-	logger.Printf(msg, env.EnvString("GCProject"))
+	logger.Infof("the bigquery connection established <%s>", pid)
 	return nil
 }
