@@ -36,7 +36,7 @@ func (d *DLM) Close() error {
 
 // Exists checks whether data exist or not.
 func (d *DLM) Exists(ctx context.Context, name string) (bool, error) {
-	conn, err := d.Pool.Get(ctx)
+	conn, err := d.Get(ctx)
 	if err != nil {
 		return false, err
 	}
