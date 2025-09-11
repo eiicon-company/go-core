@@ -194,7 +194,7 @@ func esConn(env Environment, op ...elastic.ClientOptionFunc) (*elastic.Client, e
 		return nil, fmt.Errorf("error got es version <%s>: %w", url, err)
 	}
 
-	logger.Printf("the elasticsearch connection established <%s>, version %s", url, ver)
+	logger.Infof("the elasticsearch connection established <%s>, version %s", url, ver)
 	return es, nil
 }
 
