@@ -24,7 +24,7 @@ require (
 	github.com/mediocregopher/radix/v3 v3.8.1
 	github.com/microcosm-cc/bluemonday v1.0.26
 	github.com/oklog/ulid/v2 v2.1.0
-	github.com/oleiade/reflections v1.0.1
+	github.com/oleiade/reflections v1.1.0
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/shogo82148/go-sql-proxy v0.7.2
 	github.com/volatiletech/randomize v0.0.1
