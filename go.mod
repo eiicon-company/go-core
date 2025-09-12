@@ -25,7 +25,6 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.26
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/oleiade/reflections v1.0.1
-	github.com/olivere/elastic/v7 v7.0.32
 	github.com/shogo82148/go-sql-proxy v0.7.2
 	github.com/volatiletech/randomize v0.0.1
 	github.com/volatiletech/sqlboiler/v4 v4.16.0
@@ -39,6 +38,8 @@ require (
 )
 
 require (
+	github.com/cenkalti/backoff/v5 v5.0.3
+	github.com/elastic/go-elasticsearch/v7 v7.17.10
 	github.com/gabriel-vasile/mimetype v1.4.5
 	github.com/golang-jwt/jwt/v5 v5.2.3
 	github.com/lunemec/as v1.1.2
@@ -69,11 +70,9 @@ require (
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/asmfmt v1.3.2 // indirect
 	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
-	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8 // indirect
 	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect

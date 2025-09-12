@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,11 +15,12 @@ import (
 
 	"cloud.google.com/go/bigquery"
 
+	"github.com/cenkalti/backoff/v5"
+	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/getsentry/sentry-go"
 	"github.com/go-sql-driver/mysql"
 	dlmredis "github.com/gomodule/redigo/redis"
 	radix "github.com/mediocregopher/radix/v3"
-	"github.com/olivere/elastic/v7"
 	proxy "github.com/shogo82148/go-sql-proxy"
 	"github.com/spf13/cast"
 
@@ -148,56 +150,67 @@ func DBSlowQuery(dialect string, period time.Duration) {
 	}))
 }
 
-// ESConn returns established connection
-func ESConn(env Environment) (*elastic.Client, error) {
-	var op []elastic.ClientOptionFunc
-	op = append(op, elastic.SetHttpClient(&http.Client{Timeout: 30 * time.Second}))
-	op = append(op, elastic.SetURL(env.EnvString("ESURL")))
-	op = append(op, elastic.SetSniff(true))
-	op = append(op, elastic.SetHealthcheck(true))
-	op = append(op, elastic.SetErrorLog(&logger.SentryErrorLogger{}))
-	// 8 retries with fixed delay of 100ms, 200ms, 300ms, 400ms, 500ms, 600ms, 700ms, and 800ms.
-	op = append(op, elastic.SetRetrier(elastic.NewBackoffRetrier(elastic.NewSimpleBackoff(100, 200, 300, 400, 600, 700, 800))))
+// // Wrapper for elasticsearch.Config. Ensure the config is created by yourself.
+type esConfigWrapped struct {
+	elasticsearch.Config
+}
 
-	if env.IsDebug() {
-		op = append(op, elastic.SetTraceLog(log.New(os.Stderr, "[[ELASTIC]] ", log.LstdFlags)))
-		op = append(op, elastic.SetInfoLog(log.New(os.Stdout, "[ELASTIC] ", log.LstdFlags)))
+// esConfig returns elasticsearch config with default settings.
+func esConfig(env Environment) esConfigWrapped {
+	hc := &http.Client{Timeout: 30 * time.Second}
+	backoff := backoff.NewConstantBackOff(100 * time.Millisecond)
+
+	return esConfigWrapped {
+		elasticsearch.Config {
+			Transport: hc.Transport,
+			Addresses : []string{env.EnvString("ESURL")},
+			MaxRetries: 8,
+			RetryBackoff: func(i int) time.Duration {
+				if i == 1 {
+					backoff.Reset()
+				}
+				return backoff.NextBackOff()
+			},
+			EnableDebugLogger :env.IsDebug(),
+			Logger: &logger.SentryErrorLogger{},
+		},
 	}
+}
 
-	return esConn(env, op...)
+// ESConn returns established connection
+func ESConn(env Environment) (*elasticsearch.Client, error) {
+		return esConn(esConfig(env))
 }
 
 // ESBulkConn returns established connection
-func ESBulkConn(env Environment) (*elastic.Client, error) {
-	var op []elastic.ClientOptionFunc
-	op = append(op, elastic.SetHttpClient(&http.Client{Timeout: 360 * time.Second}))
-	op = append(op, elastic.SetURL(env.EnvString("ESURL")))
-	op = append(op, elastic.SetSniff(true))
-	op = append(op, elastic.SetHealthcheck(true))
-	op = append(op, elastic.SetErrorLog(&logger.SentryErrorLogger{}))
-	// 8 retries with fixed delay of 100ms, 200ms, 300ms, 400ms, 500ms, 600ms, 700ms, and 800ms.
-	op = append(op, elastic.SetRetrier(elastic.NewBackoffRetrier(elastic.NewSimpleBackoff(100, 200, 300, 400, 600, 700, 800))))
+func ESBulkConn(env Environment) (*elasticsearch.Client, error) {
+	hc := &http.Client{Timeout: 360 * time.Second}
+	cfg := esConfig(env)
+	cfg.Transport = hc.Transport
 
-	if env.IsDebug() {
-		op = append(op, elastic.SetTraceLog(log.New(os.Stderr, "[[ELASTIC]] ", log.LstdFlags)))
-		op = append(op, elastic.SetInfoLog(log.New(os.Stdout, "[ELASTIC] ", log.LstdFlags)))
-	}
-
-	return esConn(env, op...)
+	return esConn(cfg)
 }
 
-func esConn(env Environment, op ...elastic.ClientOptionFunc) (*elastic.Client, error) {
-	es, err := elastic.NewClient(op...)
+func esConn(cfg esConfigWrapped) (*elasticsearch.Client, error) {
+	es, err := elasticsearch.NewClient(cfg.Config)
 	if err != nil {
-		return nil, fmt.Errorf("uninitialized es client <%s>: %s", env.EnvString("ESURL"), err)
+		return nil, fmt.Errorf("uninitialized es client <%s>: %w", cfg.Addresses[0], err)
 	}
-	ver, err := es.ElasticsearchVersion(env.EnvString("ESURL"))
+	res, err := es.Info()
 	if err != nil {
-		return nil, fmt.Errorf("error got es version <%s>: %s", env.EnvString("ESURL"), err)
+		return nil, fmt.Errorf("error got es version <%s>: %s", cfg.Addresses[0], err)
+	}
+	var resBody map[string]any
+	if err := json.NewDecoder(res.Body).Decode(&resBody); err != nil {
+		return nil, fmt.Errorf("error parse es version response <%s>: %s", cfg.Addresses[0], err)
+	}
+	ver := resBody["version"].(map[string]any)["number"].(string)
+
+	if _, err := es.Cat.Health(); err != nil {
+		return nil, fmt.Errorf("unhealthy: %w", err)
 	}
 
-	msg := "[INFO] the elasticsearch connection established <%s>, version %s"
-	logger.Printf(msg, env.EnvString("ESURL"), ver)
+	logger.Infof("the elasticsearch connection established <%s>, version %s", cfg.Addresses[0], ver)
 	return es, nil
 }
 
