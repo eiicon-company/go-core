@@ -1,46 +1,49 @@
 package dlm
 
 import (
+	"context"
 	"time"
 
-	"github.com/go-redsync/redsync"
-	"github.com/gomodule/redigo/redis"
+	"github.com/go-redsync/redsync/v4"
+	redsyncredis "github.com/go-redsync/redsync/v4/redis"
+	"github.com/redis/go-redis/v9"
 )
 
 type (
 	// DLM is called distributed lock manager.
 	DLM struct {
-		Pool *redis.Pool
+		redsyncredis.Pool
 	}
 )
 
 // Mutex returns MUTual EXclusion
 func (d *DLM) Mutex(name string, expires time.Duration) *redsync.Mutex {
-	rs := redsync.New([]redsync.Pool{d.Pool})
-	return rs.NewMutex(name, redsync.SetExpiry(expires))
+	rs := redsync.New(d.Pool)
+	return rs.NewMutex(name, redsync.WithExpiry(expires))
 }
 
 // MutexOptions returns MUTual EXclusion
 func (d *DLM) MutexOptions(name string, options ...redsync.Option) *redsync.Mutex {
-	rs := redsync.New([]redsync.Pool{d.Pool})
+	rs := redsync.New(d.Pool)
 	return rs.NewMutex(name, options...)
 }
 
 // Close dlm connection pooling
+// XXX: deprecated. do not need to close cause of one pool is used right now
 func (d *DLM) Close() error {
-	//
-	// return d.Pool.Close() // never close cause of one pool is used right now
-	//
 	return nil
 }
 
-// Exists checks a data is existence or not.
-func (d *DLM) Exists(name string) (bool, error) {
-	conn := d.Pool.Get()
+// Exists checks whether data exist or not.
+func (d *DLM) Exists(ctx context.Context, name string) (bool, error) {
+	conn, err := d.Get(ctx)
+	if err != nil {
+		return false, err
+	}
 	defer conn.Close()
 
-	reply, err := redis.String(conn.Do("GET", name))
-	if err != nil && err == redis.ErrNil {
+	reply, err := conn.Get(name)
+	if err == redis.Nil {
 		return false, nil
 	}
 	if err != nil {

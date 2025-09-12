@@ -8,22 +8,20 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
 	"cloud.google.com/go/bigquery"
 
 	"github.com/getsentry/sentry-go"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/go-sql-driver/mysql"
-	dlmredis "github.com/gomodule/redigo/redis"
-	radix "github.com/mediocregopher/radix/v3"
 	"github.com/olivere/elastic/v7"
+	redis "github.com/redis/go-redis/v9"
 	proxy "github.com/shogo82148/go-sql-proxy"
 	"github.com/spf13/cast"
 
 	"github.com/eiicon-company/go-core/util/dlm"
-	"github.com/eiicon-company/go-core/util/dsn"
 	"github.com/eiicon-company/go-core/util/logger"
 )
 
@@ -62,8 +60,7 @@ func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
 	var ver string
 	logger.D("%s", db.QueryRow("SELECT @@version").Scan(&ver))
 
-	msg := "[INFO] the mysql connection established <%s>, version %s"
-	logger.Printf(msg, strings.Join(strings.Split(dsn, "@")[1:], ""), ver)
+	logger.Infof("the mysql connection established <%s>, version %s", strings.Join(strings.Split(dsn, "@")[1:], ""), ver)
 
 	return db, nil
 }
@@ -75,10 +72,10 @@ func SelectDBConn(dialect, dsn string) (*sql.DB, error) {
 // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
 func DBSlowQuery(dialect string, period time.Duration) {
 	sql.Register(dialect, proxy.NewProxyContext(&mysql.MySQLDriver{}, &proxy.HooksContext{
-		PreExec: func(_ context.Context, _ *proxy.Stmt, _ []driver.NamedValue) (interface{}, error) {
+		PreExec: func(_ context.Context, _ *proxy.Stmt, _ []driver.NamedValue) (any, error) {
 			return time.Now(), nil
 		},
-		PostExec: func(ctx context.Context, dt interface{}, stmt *proxy.Stmt, args []driver.NamedValue, _ driver.Result, _ error) error {
+		PostExec: func(ctx context.Context, dt any, stmt *proxy.Stmt, args []driver.NamedValue, _ driver.Result, _ error) error {
 			startTime := dt.(time.Time)
 			since := time.Since(startTime)
 
@@ -88,7 +85,7 @@ func DBSlowQuery(dialect string, period time.Duration) {
 					s.EndTime = time.Now().Add(since)
 					s.Description = stmt.QueryString
 
-					data := map[string]interface{}{}
+					data := map[string]any{}
 					for i, arg := range args {
 						if i > 50 {
 							break
@@ -110,10 +107,10 @@ func DBSlowQuery(dialect string, period time.Duration) {
 
 			return nil
 		},
-		PreQuery: func(_ context.Context, _ *proxy.Stmt, _ []driver.NamedValue) (interface{}, error) {
+		PreQuery: func(_ context.Context, _ *proxy.Stmt, _ []driver.NamedValue) (any, error) {
 			return time.Now(), nil
 		},
-		PostQuery: func(ctx context.Context, dt interface{}, stmt *proxy.Stmt, args []driver.NamedValue, _ driver.Rows, _ error) error {
+		PostQuery: func(ctx context.Context, dt any, stmt *proxy.Stmt, args []driver.NamedValue, _ driver.Rows, _ error) error {
 			startTime := dt.(time.Time)
 			since := time.Since(startTime)
 
@@ -123,7 +120,7 @@ func DBSlowQuery(dialect string, period time.Duration) {
 					s.EndTime = time.Now().Add(since)
 					s.Description = stmt.QueryString
 
-					data := map[string]interface{}{}
+					data := map[string]any{}
 					for i, arg := range args {
 						if i > 50 {
 							break
@@ -187,110 +184,72 @@ func ESBulkConn(env Environment) (*elastic.Client, error) {
 }
 
 func esConn(env Environment, op ...elastic.ClientOptionFunc) (*elastic.Client, error) {
+	url := env.EnvString("ESURL")
 	es, err := elastic.NewClient(op...)
 	if err != nil {
-		return nil, fmt.Errorf("uninitialized es client <%s>: %s", env.EnvString("ESURL"), err)
+		return nil, fmt.Errorf("uninitialized es client <%s>: %w", url, err)
 	}
-	ver, err := es.ElasticsearchVersion(env.EnvString("ESURL"))
+	ver, err := es.ElasticsearchVersion(url)
 	if err != nil {
-		return nil, fmt.Errorf("error got es version <%s>: %s", env.EnvString("ESURL"), err)
+		return nil, fmt.Errorf("error got es version <%s>: %w", url, err)
 	}
 
-	msg := "[INFO] the elasticsearch connection established <%s>, version %s"
-	logger.Printf(msg, env.EnvString("ESURL"), ver)
+	logger.Infof("the elasticsearch connection established <%s>, version %s", url, ver)
 	return es, nil
 }
 
 // RedisConn returns established connection
-func RedisConn(env Environment) (*radix.Pool, error) {
+func RedisConn(env Environment) (*redis.Client, error) {
 	return SelectRedisConn(env.EnvString("RedisURI"))
 }
 
 // SelectRedisConn returns established connection
-func SelectRedisConn(uri string) (*radix.Pool, error) {
-	dr, err := dsn.Redis(uri)
+func SelectRedisConn(uri string) (*redis.Client, error) {
+	opt, err := redis.ParseURL(uri)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse redis dsn <%s>: %s", uri, err)
+		return nil, fmt.Errorf("failed to parse redis dsn <%s>: %w", uri, err)
 	}
 
-	selectDB, err := strconv.Atoi(dr.DB)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse redis db number <%s>: %s", uri, err)
-	}
+	opt.DialTimeout = time.Second * 10
+	opt.MaxIdleConns = 10
+	rdb := redis.NewClient(opt)
 
-	// this is a ConnFunc which will set up a connection which is authenticated
-	// and has a 1 minute timeout on all operations
-	connFunc := func(network, addr string) (radix.Conn, error) {
-		return radix.Dial(network, addr,
-			radix.DialTimeout(time.Second*10),
-			radix.DialSelectDB(selectDB),
-		)
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	p, err := radix.NewPool("tcp", dr.HostPort, 10, radix.PoolConnFunc(connFunc))
-	if err != nil {
+	if _, err := rdb.Ping(ctx).Result(); err != nil {
 		return nil, fmt.Errorf("uninitialized redis client <%s>: %s", uri, err)
 	}
 
-	msg := "[INFO] the redis@v3 connection established <%s>, version UNKNOWN"
-	logger.Printf(msg, uri)
+	logger.Infof("the redis connection established <%s>", uri)
 
-	return p, err
+	return rdb, nil
 }
 
 // DLMConn returns distributed lock manager pool
 func DLMConn(env Environment) (*dlm.DLM, error) {
-	dr, err := dsn.Redis(env.EnvString("DLMURI"))
+	uri := env.EnvString("DLMURI")
+	rdb, err := SelectRedisConn(uri)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse DLM dsn <%s>: %s", env.EnvString("DLMURI"), err)
+		return nil, err
 	}
+	pool := goredis.NewPool(rdb)
 
-	pool := &dlmredis.Pool{
-		MaxIdle:     3,
-		IdleTimeout: 240 * time.Second,
-		Dial: func() (dlmredis.Conn, error) {
-			c, err := dlmredis.Dial("tcp", dr.HostPort)
-			if err != nil {
-				return nil, err
-			}
-			if _, err := c.Do("SELECT", dr.DB); err != nil {
-				c.Close()
-				return nil, err
-			}
-			return c, nil
-		},
-		TestOnBorrow: func(c dlmredis.Conn, t time.Time) error {
-			if time.Since(t) < time.Minute {
-				return nil
-			}
-			_, err := c.Do("PING")
-			return err
-		},
-	}
-
-	conn := pool.Get()
-	defer conn.Close()
-
-	if _, err := dlmredis.String(conn.Do("PING")); err != nil {
-		return nil, fmt.Errorf("uninitialized DLM client <%s>: %s", env.EnvString("DLMURI"), err)
-	}
-
-	msg := "[INFO] the DLM(distributed lock) connection established <%s>, version UNKNOWN"
-	logger.Printf(msg, env.EnvString("DLMURI"))
+	logger.Infof("the DLM(distributed lock) connection established <%s>", uri)
 
 	return &dlm.DLM{Pool: pool}, nil
 }
 
 // BQConn returns err
 func BQConn(env Environment) error {
+	pid := env.EnvString("GCProject")
 	ctx := context.Background()
-	client, err := bigquery.NewClient(ctx, env.EnvString("GCProject"))
+	client, err := bigquery.NewClient(ctx, pid)
 	if err != nil {
-		return fmt.Errorf("there is no project in bigquery <%s>: %s", env.EnvString("GCProject"), err)
+		return fmt.Errorf("there is no project in bigquery <%s>: %w", pid, err)
 	}
 	defer client.Close()
 
-	msg := "[INFO] the bigquery connection established <%s>"
-	logger.Printf(msg, env.EnvString("GCProject"))
+	logger.Infof("the bigquery connection established <%s>", pid)
 	return nil
 }
