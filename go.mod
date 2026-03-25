@@ -1,6 +1,8 @@
 module github.com/eiicon-company/go-core
 
-go 1.24
+go 1.24.0
+
+toolchain go1.24.6
 
 require (
 	cloud.google.com/go/bigquery v1.58.0
@@ -9,7 +11,7 @@ require (
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/aws/aws-sdk-go v1.50.0
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
-	github.com/getsentry/sentry-go v0.26.0
+	github.com/getsentry/sentry-go v0.44.1
 	github.com/go-redsync/redsync v1.4.2
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gobwas/glob v0.2.3
