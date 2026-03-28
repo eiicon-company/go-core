@@ -9,7 +9,7 @@ require (
 	cloud.google.com/go/storage v1.36.0
 	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/andybalholm/cascadia v1.3.3 // indirect
-	github.com/aws/aws-sdk-go v1.50.0
+	github.com/aws/aws-sdk-go v1.55.8
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/getsentry/sentry-go v0.44.1
 	github.com/go-redsync/redsync v1.4.2
