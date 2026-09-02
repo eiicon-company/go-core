@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
-	"log"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -14,11 +14,12 @@ import (
 
 	"cloud.google.com/go/bigquery"
 
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
+	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/getsentry/sentry-go"
 	"github.com/go-sql-driver/mysql"
 	dlmredis "github.com/gomodule/redigo/redis"
 	radix "github.com/mediocregopher/radix/v3"
-	"github.com/olivere/elastic/v7"
 	proxy "github.com/shogo82148/go-sql-proxy"
 	"github.com/spf13/cast"
 
@@ -130,56 +131,53 @@ func emitSlowSpan(ctx context.Context, op string, startTime time.Time, since, pe
 	span.Finish()
 }
 
+// esRetryBackoffs are the fixed retry delays, one per attempt (7 retries).
+var esRetryBackoffs = []time.Duration{
+	100 * time.Millisecond, 200 * time.Millisecond, 300 * time.Millisecond, 400 * time.Millisecond,
+	600 * time.Millisecond, 700 * time.Millisecond, 800 * time.Millisecond,
+}
+
 // ESConn returns established connection
-func ESConn(env Environment) (*elastic.Client, error) {
-	var op []elastic.ClientOptionFunc
-	op = append(op, elastic.SetHttpClient(&http.Client{Timeout: 30 * time.Second}))
-	op = append(op, elastic.SetURL(env.EnvString("ESURL")))
-	op = append(op, elastic.SetSniff(true))
-	op = append(op, elastic.SetHealthcheck(true))
-	op = append(op, elastic.SetErrorLog(&logger.SentryErrorLogger{}))
-	// 8 retries with fixed delay of 100ms, 200ms, 300ms, 400ms, 500ms, 600ms, 700ms, and 800ms.
-	op = append(op, elastic.SetRetrier(elastic.NewBackoffRetrier(elastic.NewSimpleBackoff(100, 200, 300, 400, 600, 700, 800))))
-
-	if env.IsDebug() {
-		op = append(op, elastic.SetTraceLog(log.New(os.Stderr, "[[ELASTIC]] ", log.LstdFlags)))
-		op = append(op, elastic.SetInfoLog(log.New(os.Stdout, "[ELASTIC] ", log.LstdFlags)))
-	}
-
-	return esConn(env, op...)
+func ESConn(env Environment) (*elasticsearch.TypedClient, error) {
+	return esConn(env, 30*time.Second)
 }
 
 // ESBulkConn returns established connection
-func ESBulkConn(env Environment) (*elastic.Client, error) {
-	var op []elastic.ClientOptionFunc
-	op = append(op, elastic.SetHttpClient(&http.Client{Timeout: 360 * time.Second}))
-	op = append(op, elastic.SetURL(env.EnvString("ESURL")))
-	op = append(op, elastic.SetSniff(true))
-	op = append(op, elastic.SetHealthcheck(true))
-	op = append(op, elastic.SetErrorLog(&logger.SentryErrorLogger{}))
-	// 8 retries with fixed delay of 100ms, 200ms, 300ms, 400ms, 500ms, 600ms, 700ms, and 800ms.
-	op = append(op, elastic.SetRetrier(elastic.NewBackoffRetrier(elastic.NewSimpleBackoff(100, 200, 300, 400, 600, 700, 800))))
-
-	if env.IsDebug() {
-		op = append(op, elastic.SetTraceLog(log.New(os.Stderr, "[[ELASTIC]] ", log.LstdFlags)))
-		op = append(op, elastic.SetInfoLog(log.New(os.Stdout, "[ELASTIC] ", log.LstdFlags)))
-	}
-
-	return esConn(env, op...)
+func ESBulkConn(env Environment) (*elasticsearch.TypedClient, error) {
+	return esConn(env, 360*time.Second)
 }
 
-func esConn(env Environment, op ...elastic.ClientOptionFunc) (*elastic.Client, error) {
-	es, err := elastic.NewClient(op...)
+func esConn(env Environment, timeout time.Duration) (*elasticsearch.TypedClient, error) {
+	// No node discovery: every request goes through the Service in front of
+	// the cluster, so sniffed pod addresses cannot outlive their pods.
+	opts := []elasticsearch.Option{
+		elasticsearch.WithAddresses(env.EnvString("ESURL")),
+		elasticsearch.WithTransportOptions(
+			elastictransport.WithTransport(&http.Transport{
+				DialContext:           (&net.Dialer{Timeout: timeout}).DialContext,
+				ResponseHeaderTimeout: timeout,
+			}),
+			elastictransport.WithMaxRetries(len(esRetryBackoffs)),
+			elastictransport.WithRetryBackoff(func(attempt int) time.Duration {
+				return esRetryBackoffs[min(max(attempt, 1), len(esRetryBackoffs))-1]
+			}),
+		),
+	}
+	if env.IsDebug() {
+		opts = append(opts, elasticsearch.WithLogger(&elastictransport.TextLogger{Output: os.Stderr, EnableRequestBody: true, EnableResponseBody: true}))
+	}
+
+	es, err := elasticsearch.NewTyped(opts...)
 	if err != nil {
 		return nil, fmt.Errorf("uninitialized es client <%s>: %s", env.EnvString("ESURL"), err)
 	}
-	ver, err := es.ElasticsearchVersion(env.EnvString("ESURL"))
+	info, err := es.Info().Do(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("error got es version <%s>: %s", env.EnvString("ESURL"), err)
 	}
 
 	msg := "[INFO] the elasticsearch connection established <%s>, version %s"
-	logger.Printf(msg, env.EnvString("ESURL"), ver)
+	logger.Printf(msg, env.EnvString("ESURL"), info.Version.Int)
 	return es, nil
 }
 

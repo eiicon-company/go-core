@@ -22,7 +22,7 @@ func TestOptimizeALL(t *testing.T) {
 			t.Fatalf("OptimizeGIF Error: file=%#+v something went wrong", testGIF)
 		}
 
-		_ = os.WriteFile("test-optimize-compressed.gif", out, 0600)
+		_ = os.WriteFile("test-optimize-compressed.gif", out, 0600) //nolint:gosec // G703: fixed test output path
 	} else {
 		t.Logf("OptimizeGIF Skip: file=%#+v: %+v", testGIF, err)
 	}
@@ -42,7 +42,7 @@ func TestOptimizeALL(t *testing.T) {
 			t.Fatalf("OptimizeJPG Error: file=%#+v something went wrong", testGIF)
 		}
 
-		_ = os.WriteFile("test-optimize-compressed.jpg", out, 0600)
+		_ = os.WriteFile("test-optimize-compressed.jpg", out, 0600) //nolint:gosec // G703: fixed test output path
 	} else {
 		t.Logf("OptimizeJPG Skip: file=%#+v: %+v", testJPG, err)
 	}
@@ -62,7 +62,7 @@ func TestOptimizeALL(t *testing.T) {
 			t.Fatalf("OptimizePNG Error: file=%#+v something went wrong", testGIF)
 		}
 
-		_ = os.WriteFile("test-optimize-compressed.png", out, 0600)
+		_ = os.WriteFile("test-optimize-compressed.png", out, 0600) //nolint:gosec // G703: fixed test output path
 	} else {
 		t.Logf("OptimizePNG Skip: file=%#+v: %+v", testPNG, err)
 	}

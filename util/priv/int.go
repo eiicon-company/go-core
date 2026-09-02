@@ -59,7 +59,6 @@ func ToInt(unk interface{}) (int, error) {
 		if i > ^uint(0) {
 			return 0, errUnexpectedNumberType // Handle overflow
 		}
-		//nolint:gosec // G115
 		return int(i), nil
 	case string:
 		return strconv.Atoi(i)
