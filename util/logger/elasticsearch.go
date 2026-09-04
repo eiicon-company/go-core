@@ -2,23 +2,31 @@ package logger
 
 import (
 	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/getsentry/sentry-go"
 )
 
-type (
-	// SentryErrorLogger is satisfied of elastic.Logger
-	SentryErrorLogger struct{}
-	// SentryInfoLogger is satisfied of elastic.Logger
-	SentryInfoLogger struct{}
-)
+// SentryErrorLogger satisfies elastictransport.Logger and reports failed round trips to Sentry.
+type SentryErrorLogger struct{}
 
-// Printf prints out message as error
-func (a *SentryErrorLogger) Printf(format string, v ...interface{}) {
-	errdeps(sentry.CaptureMessage, 4, fmt.Sprintf(format, v...))
+// LogRoundTrip reports transport failures only; successful and rejected requests stay silent.
+func (a *SentryErrorLogger) LogRoundTrip(req *http.Request, _ *http.Response, err error, _ time.Time, _ time.Duration) error {
+	if err == nil {
+		return nil
+	}
+
+	url := ""
+	if req != nil && req.URL != nil {
+		url = req.URL.Host
+	}
+	errdeps(sentry.CaptureMessage, 4, fmt.Sprintf("elastic: %s is dead: %s", url, err))
+	return nil
 }
 
-// Printf prints out message as info
-func (a *SentryInfoLogger) Printf(format string, v ...interface{}) {
-	infodeps(sentry.CaptureMessage, 4, fmt.Sprintf(format, v...))
-}
+// RequestBodyEnabled reports that request bodies are not needed.
+func (a *SentryErrorLogger) RequestBodyEnabled() bool { return false }
+
+// ResponseBodyEnabled reports that response bodies are not needed.
+func (a *SentryErrorLogger) ResponseBodyEnabled() bool { return false }
