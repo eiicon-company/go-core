@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
-	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -131,12 +130,6 @@ func emitSlowSpan(ctx context.Context, op string, startTime time.Time, since, pe
 	span.Finish()
 }
 
-// esRetryBackoffs are the fixed retry delays, one per attempt (7 retries).
-var esRetryBackoffs = []time.Duration{
-	100 * time.Millisecond, 200 * time.Millisecond, 300 * time.Millisecond, 400 * time.Millisecond,
-	600 * time.Millisecond, 700 * time.Millisecond, 800 * time.Millisecond,
-}
-
 // ESConn returns established connection
 func ESConn(env Environment) (*elasticsearch.TypedClient, error) {
 	return esConn(env, 30*time.Second)
@@ -148,30 +141,45 @@ func ESBulkConn(env Environment) (*elasticsearch.TypedClient, error) {
 }
 
 func esConn(env Environment, timeout time.Duration) (*elasticsearch.TypedClient, error) {
+	// Same retries as the previous client: 6 retries with fixed delays; a later attempt gets no delay.
+	backoffs := []time.Duration{200 * time.Millisecond, 300 * time.Millisecond, 400 * time.Millisecond, 600 * time.Millisecond, 700 * time.Millisecond, 800 * time.Millisecond}
+
+	// Start from the default transport (30s dial, idle-connection reaping) and bound the header wait only.
+	base, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		return nil, fmt.Errorf("uninitialized es client <%s>: http.DefaultTransport is %T", env.EnvString("ESURL"), http.DefaultTransport)
+	}
+	transport := base.Clone()
+	transport.ResponseHeaderTimeout = timeout
+
 	// No node discovery: every request goes through the Service in front of
 	// the cluster, so sniffed pod addresses cannot outlive their pods.
 	opts := []elasticsearch.Option{
 		elasticsearch.WithAddresses(env.EnvString("ESURL")),
 		elasticsearch.WithTransportOptions(
-			elastictransport.WithTransport(&http.Transport{
-				DialContext:           (&net.Dialer{Timeout: timeout}).DialContext,
-				ResponseHeaderTimeout: timeout,
-			}),
-			elastictransport.WithMaxRetries(len(esRetryBackoffs)),
+			elastictransport.WithTransport(transport),
+			elastictransport.WithMaxRetries(len(backoffs)),
 			elastictransport.WithRetryBackoff(func(attempt int) time.Duration {
-				return esRetryBackoffs[min(max(attempt, 1), len(esRetryBackoffs))-1]
+				if attempt < 1 || attempt > len(backoffs) {
+					return 0
+				}
+				return backoffs[attempt-1]
 			}),
 		),
 	}
 	if env.IsDebug() {
 		opts = append(opts, elasticsearch.WithLogger(&elastictransport.TextLogger{Output: os.Stderr, EnableRequestBody: true, EnableResponseBody: true}))
+	} else {
+		opts = append(opts, elasticsearch.WithLogger(&logger.SentryErrorLogger{}))
 	}
 
 	es, err := elasticsearch.NewTyped(opts...)
 	if err != nil {
 		return nil, fmt.Errorf("uninitialized es client <%s>: %s", env.EnvString("ESURL"), err)
 	}
-	info, err := es.Info().Do(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	info, err := es.Info().Do(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error got es version <%s>: %s", env.EnvString("ESURL"), err)
 	}
