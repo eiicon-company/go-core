@@ -80,33 +80,7 @@ func DBSlowQuery(dialect string, period time.Duration) {
 		},
 		PostExec: func(ctx context.Context, dt interface{}, stmt *proxy.Stmt, args []driver.NamedValue, _ driver.Result, _ error) error {
 			startTime := dt.(time.Time)
-			since := time.Since(startTime)
-
-			if since > period {
-				span := sentry.StartSpan(ctx, "db.sql.exec.slow", func(s *sentry.Span) {
-					s.StartTime = startTime
-					s.EndTime = time.Now().Add(since)
-					s.Description = stmt.QueryString
-
-					data := map[string]interface{}{}
-					for i, arg := range args {
-						if i > 50 {
-							break
-						}
-
-						k := arg.Name
-						if k == "" {
-							k = cast.ToString(arg.Ordinal)
-						}
-
-						data[k] = cast.ToString(arg.Value)
-					}
-					s.Data = data
-				})
-				span.Finish()
-
-				ctx = span.Context() //nolint
-			}
+			emitSlowSpan(ctx, "db.sql.exec.slow", startTime, time.Since(startTime), period, stmt.QueryString, args)
 
 			return nil
 		},
@@ -115,37 +89,45 @@ func DBSlowQuery(dialect string, period time.Duration) {
 		},
 		PostQuery: func(ctx context.Context, dt interface{}, stmt *proxy.Stmt, args []driver.NamedValue, _ driver.Rows, _ error) error {
 			startTime := dt.(time.Time)
-			since := time.Since(startTime)
-
-			if since > period {
-				span := sentry.StartSpan(ctx, "db.sql.query.slow", func(s *sentry.Span) {
-					s.StartTime = startTime
-					s.EndTime = time.Now().Add(since)
-					s.Description = stmt.QueryString
-
-					data := map[string]interface{}{}
-					for i, arg := range args {
-						if i > 50 {
-							break
-						}
-
-						k := arg.Name
-						if k == "" {
-							k = cast.ToString(arg.Ordinal)
-						}
-
-						data[k] = cast.ToString(arg.Value)
-					}
-					s.Data = data
-				})
-				span.Finish()
-
-				ctx = span.Context() //nolint
-			}
+			emitSlowSpan(ctx, "db.sql.query.slow", startTime, time.Since(startTime), period, stmt.QueryString, args)
 
 			return nil
 		},
 	}))
+}
+
+// emitSlowSpan reports a statement that took longer than period to sentry, as a
+// span nested in ctx. It is a no-op for statements that finished in time.
+//
+// since must be the measured elapsed time of the statement: the span is dated
+// [startTime, startTime+since), so passing a since that disagrees with startTime
+// misreports the duration.
+func emitSlowSpan(ctx context.Context, op string, startTime time.Time, since, period time.Duration, query string, args []driver.NamedValue) {
+	if since <= period {
+		return
+	}
+
+	span := sentry.StartSpan(ctx, op, func(s *sentry.Span) {
+		s.StartTime = startTime
+		s.EndTime = startTime.Add(since)
+		s.Description = query
+
+		data := map[string]interface{}{}
+		for i, arg := range args {
+			if i > 50 {
+				break
+			}
+
+			k := arg.Name
+			if k == "" {
+				k = cast.ToString(arg.Ordinal)
+			}
+
+			data[k] = cast.ToString(arg.Value)
+		}
+		s.Data = data
+	})
+	span.Finish()
 }
 
 // ESConn returns established connection
