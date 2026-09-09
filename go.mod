@@ -1,8 +1,6 @@
 module github.com/eiicon-company/go-core
 
-go 1.24.0
-
-toolchain go1.24.6
+go 1.25
 
 require (
 	cloud.google.com/go/bigquery v1.58.0
@@ -54,7 +52,7 @@ require (
 	cloud.google.com/go/iam v1.1.5 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/apache/arrow/go/v12 v12.0.1 // indirect
-	github.com/apache/thrift v0.19.0 // indirect
+	github.com/apache/thrift v0.24.0 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
