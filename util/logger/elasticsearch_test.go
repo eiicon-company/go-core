@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func TestSentryErrorLoggerForgetsCancelledRequests(t *testing.T) {
+func TestSentryErrorLoggerForgetsCanceledRequests(t *testing.T) {
 	// Arrange: one failed attempt, then the caller gives up during the retry backoff.
 	ctx, cancel := context.WithCancel(context.Background())
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://es.invalid/", nil)
@@ -16,7 +16,7 @@ func TestSentryErrorLoggerForgetsCancelledRequests(t *testing.T) {
 		t.Fatalf("Unexpected error: %s", err)
 	}
 	l := NewSentryErrorLogger(3)
-	l.Report = func(string) { t.Errorf("Miss match value: want no report for a cancelled request") }
+	l.Report = func(string) { t.Errorf("Miss match value: want no report for a canceled request") }
 	_ = l.LogRoundTrip(req, nil, errors.New("connection refused"), time.Now(), 0)
 
 	// Act
