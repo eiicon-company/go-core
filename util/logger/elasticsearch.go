@@ -71,8 +71,12 @@ func (a *SentryErrorLogger) LogRoundTrip(req *http.Request, _ *http.Response, er
 		return nil
 	}
 
-	count, _ := a.failures.LoadOrStore(req, &atomic.Int64{})
-	if count.(*atomic.Int64).Add(1) != int64(a.attempts) {
+	value, loaded := a.failures.LoadOrStore(req, &atomic.Int64{})
+	if !loaded && req != nil {
+		// A cancel during the retry backoff ends the request without another call here.
+		context.AfterFunc(req.Context(), func() { a.failures.Delete(req) })
+	}
+	if value.(*atomic.Int64).Add(1) != int64(a.attempts) {
 		return nil
 	}
 	a.failures.Delete(req)
