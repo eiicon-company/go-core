@@ -2,6 +2,8 @@ package util
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -133,7 +135,7 @@ func TestESConnDoesNotRetryOnServerErrorStatus(t *testing.T) {
 	}
 }
 
-func TestRetryTransportErrorSkipsCancellationsAndTimeouts(t *testing.T) {
+func TestRetryTransportErrorSkipsCancellationsAndTemporaryErrors(t *testing.T) {
 	// Arrange
 	tests := []struct {
 		name string
@@ -142,7 +144,9 @@ func TestRetryTransportErrorSkipsCancellationsAndTimeouts(t *testing.T) {
 	}{
 		{name: "canceled context is returned to the caller", err: context.Canceled, want: false},
 		{name: "expired deadline is returned to the caller", err: context.DeadlineExceeded, want: false},
-		{name: "timeout is returned to the caller", err: &timeoutError{}, want: false},
+		{name: "temporary error is returned to the caller", err: &transportError{temporary: true}, want: false},
+		{name: "non-temporary timeout retries", err: &transportError{timeout: true}, want: true},
+		{name: "wrapped temporary error is returned to the caller", err: fmt.Errorf("wrapped: %w", &transportError{temporary: true}), want: false},
 		{name: "other transport failures retry", err: io.ErrUnexpectedEOF, want: true},
 	}
 
@@ -161,11 +165,14 @@ func TestRetryTransportErrorSkipsCancellationsAndTimeouts(t *testing.T) {
 	}
 }
 
-// timeoutError stands in for the net and http errors that report themselves as timeouts.
-type timeoutError struct{}
+type transportError struct {
+	temporary bool
+	timeout   bool
+}
 
-func (e *timeoutError) Error() string { return "stub timeout" }
-func (e *timeoutError) Timeout() bool { return true }
+func (e *transportError) Error() string   { return "stub transport error" }
+func (e *transportError) Temporary() bool { return e.temporary }
+func (e *transportError) Timeout() bool   { return e.timeout }
 
 func TestDeadlineTransportBoundsTheBodyRead(t *testing.T) {
 	// Arrange: headers arrive at once, then the body stalls until the test ends.
@@ -192,28 +199,145 @@ func TestDeadlineTransportBoundsTheBodyRead(t *testing.T) {
 	_, err = io.ReadAll(res.Body)
 
 	// Assert
-	if err == nil {
-		t.Fatalf("Miss match value: want the body read to stop, got nil")
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("Miss match value: want a deadline error, got %v", err)
 	}
 }
 
-func TestESLoggerKeepsSentryWhileDebugging(t *testing.T) {
+func TestDeadlineTransportReadsNormalBody(t *testing.T) {
+	// Arrange
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = io.WriteString(w, "complete body")
+	}))
+	t.Cleanup(srv.Close)
+	rt := &deadlineTransport{base: http.DefaultTransport, timeout: time.Second}
+	req, err := http.NewRequest(http.MethodGet, srv.URL, nil)
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+
 	// Act
-	quiet, debug := esLogger(false), esLogger(true)
+	res, err := rt.RoundTrip(req)
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
 
 	// Assert
-	if _, ok := quiet.(*logger.SentryErrorLogger); !ok {
-		t.Errorf("Miss match value: want the Sentry logger, got %T", quiet)
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
 	}
-	multi, ok := debug.(logger.MultiLogger)
-	if !ok {
-		t.Fatalf("Miss match value: want several loggers, got %T", debug)
+	if string(body) != "complete body" {
+		t.Errorf("Miss match value: want complete body, got %s", body)
 	}
-	if _, ok := multi[0].(*logger.SentryErrorLogger); !ok {
-		t.Errorf("Miss match value: want the Sentry logger first, got %T", multi[0])
+}
+
+func TestCancelOnCloseReleasesDeadlineOnReadError(t *testing.T) {
+	for _, readErr := range []error{io.EOF, io.ErrUnexpectedEOF} {
+		t.Run(readErr.Error(), func(t *testing.T) {
+			// Arrange
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			body := &cancelOnClose{ReadCloser: errorBody{err: readErr}, cancel: cancel}
+
+			// Act
+			_, err := body.Read(make([]byte, 1))
+
+			// Assert
+			if !errors.Is(err, readErr) || !errors.Is(ctx.Err(), context.Canceled) {
+				t.Errorf("Miss match value: want %v and canceled context, got %v and %v", readErr, err, ctx.Err())
+			}
+		})
 	}
-	if !multi.RequestBodyEnabled() {
-		t.Errorf("Miss match value: want request bodies while debugging, got false")
+}
+
+type errorBody struct{ err error }
+
+func (b errorBody) Read([]byte) (int, error) { return 0, b.err }
+func (b errorBody) Close() error             { return nil }
+
+type fakeESLogger struct {
+	requestBody  bool
+	responseBody bool
+	calls        int
+	err          error
+}
+
+func (l *fakeESLogger) LogRoundTrip(*http.Request, *http.Response, error, time.Time, time.Duration) error {
+	l.calls++
+	return l.err
+}
+func (l *fakeESLogger) RequestBodyEnabled() bool  { return l.requestBody }
+func (l *fakeESLogger) ResponseBodyEnabled() bool { return l.responseBody }
+
+func TestMultiLoggerCallsEveryLogger(t *testing.T) {
+	// Arrange
+	firstErr := errors.New("first logger failed")
+	first := &fakeESLogger{err: firstErr}
+	second := &fakeESLogger{requestBody: true, err: errors.New("second logger failed")}
+	third := &fakeESLogger{responseBody: true}
+	multi := logger.MultiLogger{first, second, third}
+
+	// Act
+	err := multi.LogRoundTrip(nil, nil, nil, time.Time{}, 0)
+
+	// Assert
+	if !errors.Is(err, firstErr) {
+		t.Errorf("Miss match value: want first error, got %v", err)
+	}
+	for _, l := range []*fakeESLogger{first, second, third} {
+		if l.calls != 1 {
+			t.Errorf("Miss match value: want 1 logger call, got %d", l.calls)
+		}
+	}
+	if !multi.RequestBodyEnabled() || !multi.ResponseBodyEnabled() {
+		t.Errorf("Miss match value: want request and response bodies enabled")
+	}
+	if (logger.MultiLogger{first}).RequestBodyEnabled() || (logger.MultiLogger{first}).ResponseBodyEnabled() {
+		t.Errorf("Miss match value: want bodies disabled when no logger requests them")
+	}
+}
+
+func TestSentryErrorLoggerCountsFailedAttempts(t *testing.T) {
+	// Arrange
+	l := logger.NewSentryErrorLogger(3)
+	var reports []string
+	l.Report = func(message string) { reports = append(reports, message) }
+	req, err := http.NewRequest(http.MethodGet, "http://localhost/", nil)
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+	failure := errors.New("connection failed")
+
+	// Act / Assert
+	logAttempt := func(err error, wantReports int) {
+		t.Helper()
+		if logErr := l.LogRoundTrip(req, nil, err, time.Time{}, 0); logErr != nil {
+			t.Fatalf("Unexpected error: %s", logErr)
+		}
+		if len(reports) != wantReports {
+			t.Fatalf("Miss match value: want %d reports, got %d", wantReports, len(reports))
+		}
+	}
+	logAttempt(failure, 0)
+	logAttempt(failure, 0)
+	logAttempt(failure, 1)
+	if !strings.Contains(reports[0], "localhost is dead: connection failed") {
+		t.Errorf("Miss match value: want host and error in report, got %s", reports[0])
+	}
+	logAttempt(failure, 1)
+	logAttempt(failure, 1)
+	logAttempt(nil, 1)
+	logAttempt(failure, 1)
+	logAttempt(failure, 1)
+	logAttempt(failure, 2)
+	for _, ignored := range []error{context.Canceled, context.DeadlineExceeded, &transportError{temporary: true}, fmt.Errorf("wrapped: %w", context.Canceled)} {
+		logAttempt(failure, 2)
+		logAttempt(failure, 2)
+		logAttempt(ignored, 2)
+		logAttempt(failure, 2)
+		logAttempt(nil, 2)
 	}
 }
 

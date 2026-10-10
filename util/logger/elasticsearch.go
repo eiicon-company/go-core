@@ -1,8 +1,12 @@
 package logger
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
@@ -44,20 +48,40 @@ func (m MultiLogger) ResponseBodyEnabled() bool {
 	return false
 }
 
-// SentryErrorLogger satisfies elastictransport.Logger and reports failed round trips to Sentry.
-type SentryErrorLogger struct{}
+// SentryErrorLogger reports exhausted requests rather than each failed retry.
+type SentryErrorLogger struct {
+	attempts int
+	failures sync.Map
+	Report   func(string)
+}
 
-// LogRoundTrip reports transport failures only; successful and rejected requests stay silent.
+func NewSentryErrorLogger(attempts int) *SentryErrorLogger {
+	return &SentryErrorLogger{
+		attempts: attempts,
+		Report:   func(message string) { errdeps(sentry.CaptureMessage, 4, message) },
+	}
+}
+
+// LogRoundTrip suppresses errors the previous client returned without reporting.
 func (a *SentryErrorLogger) LogRoundTrip(req *http.Request, _ *http.Response, err error, _ time.Time, _ time.Duration) error {
-	if err == nil {
+	var temporary interface{ Temporary() bool }
+	if err == nil || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) ||
+		(errors.As(err, &temporary) && temporary.Temporary()) {
+		a.failures.Delete(req)
 		return nil
 	}
+
+	count, _ := a.failures.LoadOrStore(req, &atomic.Int64{})
+	if count.(*atomic.Int64).Add(1) != int64(a.attempts) {
+		return nil
+	}
+	a.failures.Delete(req)
 
 	url := ""
 	if req != nil && req.URL != nil {
 		url = req.URL.Host
 	}
-	errdeps(sentry.CaptureMessage, 4, fmt.Sprintf("elastic: %s is dead: %s", url, err))
+	a.Report(fmt.Sprintf("elastic: %s is dead: %s", url, err))
 	return nil
 }
 

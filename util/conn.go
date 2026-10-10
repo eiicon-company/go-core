@@ -140,7 +140,7 @@ type deadlineTransport struct {
 	timeout time.Duration
 }
 
-// RoundTrip releases the deadline when the caller closes the body, not when the headers arrive.
+// RoundTrip keeps the deadline active after headers arrive so body reads remain bounded.
 func (t *deadlineTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	ctx, cancel := context.WithTimeout(req.Context(), t.timeout)
 
@@ -159,30 +159,39 @@ type cancelOnClose struct {
 	cancel context.CancelFunc
 }
 
+func (c *cancelOnClose) Read(p []byte) (int, error) {
+	n, err := c.ReadCloser.Read(p)
+	if err != nil {
+		// Debug logging can replace the body without closing it after a read error.
+		c.cancel()
+	}
+	return n, err
+}
+
 func (c *cancelOnClose) Close() error {
 	err := c.ReadCloser.Close()
 	c.cancel()
 	return err
 }
 
-// retryTransportError mirrors the previous client, which handed cancellations and timeouts back to
+// retryTransportError mirrors the previous client, which handed cancellations and temporary errors back to
 // the caller and retried every other transport failure.
 func retryTransportError(_ *http.Request, err error) bool {
 	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 		return false
 	}
 
-	var timeout interface{ Timeout() bool }
-	if errors.As(err, &timeout) && timeout.Timeout() {
+	var temporary interface{ Temporary() bool }
+	if errors.As(err, &temporary) && temporary.Temporary() {
 		return false
 	}
 
 	return true
 }
 
-// esLogger keeps the previous pairing: failures always reach Sentry, and debug adds the trace.
-func esLogger(debug bool) elastictransport.Logger {
-	sentry := &logger.SentryErrorLogger{}
+// esLogger keeps Sentry reporting after exhausted retries while debug adds the trace.
+func esLogger(debug bool, attempts int) elastictransport.Logger {
+	sentry := logger.NewSentryErrorLogger(attempts)
 	if !debug {
 		return sentry
 	}
@@ -232,7 +241,7 @@ func esConn(env Environment, timeout time.Duration) (*elasticsearch.TypedClient,
 			elastictransport.WithRetryOnStatus(0),
 			elastictransport.WithRetryOnError(retryTransportError),
 		),
-		elasticsearch.WithLogger(esLogger(env.IsDebug())),
+		elasticsearch.WithLogger(esLogger(env.IsDebug(), len(backoffs)+1)),
 	}
 
 	es, err := elasticsearch.NewTyped(opts...)
