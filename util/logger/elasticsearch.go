@@ -51,8 +51,15 @@ func (m MultiLogger) ResponseBodyEnabled() bool {
 // SentryErrorLogger reports exhausted requests rather than each failed retry.
 type SentryErrorLogger struct {
 	attempts int
-	failures sync.Map
+	failures sync.Map // *http.Request -> *failedRequest
 	Report   func(string)
+}
+
+// failedRequest counts the failed attempts of one request. stop unregisters the cancel watch;
+// the transport retries a request sequentially, so only one goroutine touches it.
+type failedRequest struct {
+	count atomic.Int64
+	stop  func() bool
 }
 
 func NewSentryErrorLogger(attempts int) *SentryErrorLogger {
@@ -67,19 +74,20 @@ func (a *SentryErrorLogger) LogRoundTrip(req *http.Request, _ *http.Response, er
 	var temporary interface{ Temporary() bool }
 	if err == nil || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) ||
 		(errors.As(err, &temporary) && temporary.Temporary()) {
-		a.failures.Delete(req)
+		a.forget(req)
 		return nil
 	}
 
-	value, loaded := a.failures.LoadOrStore(req, &atomic.Int64{})
+	value, loaded := a.failures.LoadOrStore(req, &failedRequest{})
+	failed := value.(*failedRequest)
 	if !loaded && req != nil {
 		// A cancel during the retry backoff ends the request without another call here.
-		context.AfterFunc(req.Context(), func() { a.failures.Delete(req) })
+		failed.stop = context.AfterFunc(req.Context(), func() { a.failures.Delete(req) })
 	}
-	if value.(*atomic.Int64).Add(1) != int64(a.attempts) {
+	if failed.count.Add(1) != int64(a.attempts) {
 		return nil
 	}
-	a.failures.Delete(req)
+	a.forget(req)
 
 	url := ""
 	if req != nil && req.URL != nil {
@@ -87,6 +95,13 @@ func (a *SentryErrorLogger) LogRoundTrip(req *http.Request, _ *http.Response, er
 	}
 	a.Report(fmt.Sprintf("elastic: %s is dead: %s", url, err))
 	return nil
+}
+
+// forget drops the count and its cancel watch, which a long-lived context would otherwise keep.
+func (a *SentryErrorLogger) forget(req *http.Request) {
+	if value, ok := a.failures.LoadAndDelete(req); ok && value.(*failedRequest).stop != nil {
+		value.(*failedRequest).stop()
+	}
 }
 
 // RequestBodyEnabled reports that request bodies are not needed.
