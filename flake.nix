@@ -14,7 +14,7 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        go = pkgs.go_1_25;
+        go = pkgs.go_1_26;
         buildGoModule = pkgs.buildGoModule.override {
           inherit go;
         };
