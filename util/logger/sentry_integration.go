@@ -2,6 +2,7 @@ package logger
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -39,6 +40,14 @@ func (t *SentryDevNullTransport) SendEvent(event *sentry.Event) {
 func (t *SentryDevNullTransport) Flush(_ time.Duration) bool {
 	return true
 }
+
+// FlushWithContext ...
+func (t *SentryDevNullTransport) FlushWithContext(_ context.Context) bool {
+	return true
+}
+
+// Close ...
+func (t *SentryDevNullTransport) Close() {}
 
 // SentryLoggerIntegration filters no need stacktrace frames
 type SentryLoggerIntegration struct{}

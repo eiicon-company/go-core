@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"errors"
 	"fmt"
-	"log"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -14,11 +15,12 @@ import (
 
 	"cloud.google.com/go/bigquery"
 
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
+	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/getsentry/sentry-go"
 	"github.com/go-sql-driver/mysql"
 	dlmredis "github.com/gomodule/redigo/redis"
 	radix "github.com/mediocregopher/radix/v3"
-	"github.com/olivere/elastic/v7"
 	proxy "github.com/shogo82148/go-sql-proxy"
 	"github.com/spf13/cast"
 
@@ -80,33 +82,7 @@ func DBSlowQuery(dialect string, period time.Duration) {
 		},
 		PostExec: func(ctx context.Context, dt interface{}, stmt *proxy.Stmt, args []driver.NamedValue, _ driver.Result, _ error) error {
 			startTime := dt.(time.Time)
-			since := time.Since(startTime)
-
-			if since > period {
-				span := sentry.StartSpan(ctx, "db.sql.exec.slow", func(s *sentry.Span) {
-					s.StartTime = startTime
-					s.EndTime = time.Now().Add(since)
-					s.Description = stmt.QueryString
-
-					data := map[string]interface{}{}
-					for i, arg := range args {
-						if i > 50 {
-							break
-						}
-
-						k := arg.Name
-						if k == "" {
-							k = cast.ToString(arg.Ordinal)
-						}
-
-						data[k] = cast.ToString(arg.Value)
-					}
-					s.Data = data
-				})
-				span.Finish()
-
-				ctx = span.Context() //nolint
-			}
+			emitSlowSpan(ctx, "db.sql.exec.slow", startTime, time.Since(startTime), period, stmt.QueryString, args)
 
 			return nil
 		},
@@ -115,89 +91,172 @@ func DBSlowQuery(dialect string, period time.Duration) {
 		},
 		PostQuery: func(ctx context.Context, dt interface{}, stmt *proxy.Stmt, args []driver.NamedValue, _ driver.Rows, _ error) error {
 			startTime := dt.(time.Time)
-			since := time.Since(startTime)
-
-			if since > period {
-				span := sentry.StartSpan(ctx, "db.sql.query.slow", func(s *sentry.Span) {
-					s.StartTime = startTime
-					s.EndTime = time.Now().Add(since)
-					s.Description = stmt.QueryString
-
-					data := map[string]interface{}{}
-					for i, arg := range args {
-						if i > 50 {
-							break
-						}
-
-						k := arg.Name
-						if k == "" {
-							k = cast.ToString(arg.Ordinal)
-						}
-
-						data[k] = cast.ToString(arg.Value)
-					}
-					s.Data = data
-				})
-				span.Finish()
-
-				ctx = span.Context() //nolint
-			}
+			emitSlowSpan(ctx, "db.sql.query.slow", startTime, time.Since(startTime), period, stmt.QueryString, args)
 
 			return nil
 		},
 	}))
 }
 
-// ESConn returns established connection
-func ESConn(env Environment) (*elastic.Client, error) {
-	var op []elastic.ClientOptionFunc
-	op = append(op, elastic.SetHttpClient(&http.Client{Timeout: 30 * time.Second}))
-	op = append(op, elastic.SetURL(env.EnvString("ESURL")))
-	op = append(op, elastic.SetSniff(true))
-	op = append(op, elastic.SetHealthcheck(true))
-	op = append(op, elastic.SetErrorLog(&logger.SentryErrorLogger{}))
-	// 8 retries with fixed delay of 100ms, 200ms, 300ms, 400ms, 500ms, 600ms, 700ms, and 800ms.
-	op = append(op, elastic.SetRetrier(elastic.NewBackoffRetrier(elastic.NewSimpleBackoff(100, 200, 300, 400, 600, 700, 800))))
-
-	if env.IsDebug() {
-		op = append(op, elastic.SetTraceLog(log.New(os.Stderr, "[[ELASTIC]] ", log.LstdFlags)))
-		op = append(op, elastic.SetInfoLog(log.New(os.Stdout, "[ELASTIC] ", log.LstdFlags)))
+// emitSlowSpan reports a statement that took longer than period to sentry, as a
+// span nested in ctx. It is a no-op for statements that finished in time.
+//
+// since must be the measured elapsed time of the statement: the span is dated
+// [startTime, startTime+since), so passing a since that disagrees with startTime
+// misreports the duration.
+func emitSlowSpan(ctx context.Context, op string, startTime time.Time, since, period time.Duration, query string, args []driver.NamedValue) {
+	if since <= period {
+		return
 	}
 
-	return esConn(env, op...)
+	span := sentry.StartSpan(ctx, op, func(s *sentry.Span) {
+		s.StartTime = startTime
+		s.EndTime = startTime.Add(since)
+		s.Description = query
+
+		data := map[string]interface{}{}
+		for i, arg := range args {
+			if i > 50 {
+				break
+			}
+
+			k := arg.Name
+			if k == "" {
+				k = cast.ToString(arg.Ordinal)
+			}
+
+			data[k] = cast.ToString(arg.Value)
+		}
+		s.Data = data
+	})
+	span.Finish()
+}
+
+// deadlineTransport gives every attempt the deadline the previous client got from
+// http.Client.Timeout: one bound on the whole exchange, body read included. The library takes a
+// http.RoundTripper rather than a http.Client, and ResponseHeaderTimeout stops at the headers.
+type deadlineTransport struct {
+	base    http.RoundTripper
+	timeout time.Duration
+}
+
+// RoundTrip keeps the deadline active after headers arrive so body reads remain bounded.
+func (t *deadlineTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	ctx, cancel := context.WithTimeout(req.Context(), t.timeout)
+
+	res, err := t.base.RoundTrip(req.WithContext(ctx))
+	if err != nil {
+		cancel()
+		return nil, err
+	}
+
+	res.Body = &cancelOnClose{ReadCloser: res.Body, cancel: cancel}
+	return res, nil
+}
+
+type cancelOnClose struct {
+	io.ReadCloser
+	cancel context.CancelFunc
+}
+
+func (c *cancelOnClose) Read(p []byte) (int, error) {
+	n, err := c.ReadCloser.Read(p)
+	if err != nil {
+		// Debug logging can replace the body without closing it after a read error.
+		c.cancel()
+	}
+	return n, err
+}
+
+func (c *cancelOnClose) Close() error {
+	err := c.ReadCloser.Close()
+	c.cancel()
+	return err
+}
+
+// retryTransportError mirrors the previous client, which handed cancellations and temporary errors back to
+// the caller and retried every other transport failure.
+func retryTransportError(_ *http.Request, err error) bool {
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return false
+	}
+
+	var temporary interface{ Temporary() bool }
+	if errors.As(err, &temporary) && temporary.Temporary() {
+		return false
+	}
+
+	return true
+}
+
+// esLogger keeps Sentry reporting after exhausted retries while debug adds the trace.
+func esLogger(debug bool, attempts int) elastictransport.Logger {
+	sentry := logger.NewSentryErrorLogger(attempts)
+	if !debug {
+		return sentry
+	}
+
+	trace := &elastictransport.TextLogger{Output: os.Stderr, EnableRequestBody: true, EnableResponseBody: true}
+	return logger.MultiLogger{sentry, trace}
+}
+
+// ESConn returns established connection
+func ESConn(env Environment) (*elasticsearch.TypedClient, error) {
+	return esConn(env, 30*time.Second)
 }
 
 // ESBulkConn returns established connection
-func ESBulkConn(env Environment) (*elastic.Client, error) {
-	var op []elastic.ClientOptionFunc
-	op = append(op, elastic.SetHttpClient(&http.Client{Timeout: 360 * time.Second}))
-	op = append(op, elastic.SetURL(env.EnvString("ESURL")))
-	op = append(op, elastic.SetSniff(true))
-	op = append(op, elastic.SetHealthcheck(true))
-	op = append(op, elastic.SetErrorLog(&logger.SentryErrorLogger{}))
-	// 8 retries with fixed delay of 100ms, 200ms, 300ms, 400ms, 500ms, 600ms, 700ms, and 800ms.
-	op = append(op, elastic.SetRetrier(elastic.NewBackoffRetrier(elastic.NewSimpleBackoff(100, 200, 300, 400, 600, 700, 800))))
-
-	if env.IsDebug() {
-		op = append(op, elastic.SetTraceLog(log.New(os.Stderr, "[[ELASTIC]] ", log.LstdFlags)))
-		op = append(op, elastic.SetInfoLog(log.New(os.Stdout, "[ELASTIC] ", log.LstdFlags)))
-	}
-
-	return esConn(env, op...)
+func ESBulkConn(env Environment) (*elasticsearch.TypedClient, error) {
+	return esConn(env, 360*time.Second)
 }
 
-func esConn(env Environment, op ...elastic.ClientOptionFunc) (*elastic.Client, error) {
-	es, err := elastic.NewClient(op...)
+func esConn(env Environment, timeout time.Duration) (*elasticsearch.TypedClient, error) {
+	// Same retries as the previous client: 6 retries with fixed delays; a later attempt gets no delay.
+	// Its backoff was seeded with a leading 100ms it never used -- the caller incremented the attempt
+	// before asking for a delay, so the first retry already read the second tick.
+	backoffs := []time.Duration{200 * time.Millisecond, 300 * time.Millisecond, 400 * time.Millisecond, 600 * time.Millisecond, 700 * time.Millisecond, 800 * time.Millisecond}
+
+	// Start from the default transport (30s dial, idle-connection reaping).
+	base, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		return nil, fmt.Errorf("uninitialized es client <%s>: http.DefaultTransport is %T", env.EnvString("ESURL"), http.DefaultTransport)
+	}
+
+	// No node discovery: every request goes through the Service in front of
+	// the cluster, so sniffed pod addresses cannot outlive their pods.
+	opts := []elasticsearch.Option{
+		elasticsearch.WithAddresses(env.EnvString("ESURL")),
+		elasticsearch.WithTransportOptions(
+			elastictransport.WithTransport(&deadlineTransport{base: base.Clone(), timeout: timeout}),
+			elastictransport.WithMaxRetries(len(backoffs)),
+			elastictransport.WithRetryBackoff(func(attempt int) time.Duration {
+				if attempt < 1 || attempt > len(backoffs) {
+					return 0
+				}
+				return backoffs[attempt-1]
+			}),
+			// The previous client never retried on a response status. 0 matches no real response;
+			// an empty list would fall back to the library default of 502, 503 and 504, which would
+			// re-send writes the cluster may already have applied.
+			elastictransport.WithRetryOnStatus(0),
+			elastictransport.WithRetryOnError(retryTransportError),
+		),
+		elasticsearch.WithLogger(esLogger(env.IsDebug(), len(backoffs)+1)),
+	}
+
+	es, err := elasticsearch.NewTyped(opts...)
 	if err != nil {
 		return nil, fmt.Errorf("uninitialized es client <%s>: %s", env.EnvString("ESURL"), err)
 	}
-	ver, err := es.ElasticsearchVersion(env.EnvString("ESURL"))
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	info, err := es.Info().Do(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error got es version <%s>: %s", env.EnvString("ESURL"), err)
 	}
 
 	msg := "[INFO] the elasticsearch connection established <%s>, version %s"
-	logger.Printf(msg, env.EnvString("ESURL"), ver)
+	logger.Printf(msg, env.EnvString("ESURL"), info.Version.Int)
 	return es, nil
 }
 
