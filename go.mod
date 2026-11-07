@@ -1,6 +1,6 @@
 module github.com/eiicon-company/go-core
 
-go 1.25
+go 1.26.0
 
 require (
 	cloud.google.com/go/bigquery v1.58.0
