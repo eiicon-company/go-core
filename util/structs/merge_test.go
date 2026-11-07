@@ -20,6 +20,8 @@ type testModel struct {
 	UpdatedAt   time.Time    `bigquery:"updated_at" csv:"updated_at" boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 }
 
+const src2Name = "src2"
+
 func TestOverwriteMerge(t *testing.T) {
 	t.Helper()
 	t.Parallel()
@@ -95,7 +97,7 @@ func TestOverwriteMergeRestParameters(t *testing.T) {
 		IsDeleted:   false,
 	}
 	src2 := &testModel{
-		Name: "src2",
+		Name: src2Name,
 	}
 
 	if err := OverwriteMerge(dest, src1, src2); err != nil {
@@ -117,7 +119,7 @@ func TestOverwriteMergeRestParameters(t *testing.T) {
 	if dest.DeletedAt.Time != src1.DeletedAt.Time {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
-	if dest.Name != "src2" {
+	if dest.Name != src2Name {
 		t.Fatalf("invalid value: %+#v", dest)
 	}
 }
@@ -193,7 +195,7 @@ func TestMergeRestParameters(t *testing.T) {
 		IsDeleted:   false,
 	}
 	src2 := &testModel{
-		Name: "src2",
+		Name: src2Name,
 	}
 
 	if err := Merge(dest, src1, src2); err != nil {
@@ -245,7 +247,7 @@ func TestMergeNil(t *testing.T) {
 		IsDeleted:   false,
 	}
 	src2 := &testModel{
-		Name: "src2",
+		Name: src2Name,
 	}
 
 	if err := Merge(dest, src1, nil, src2); err != nil {
