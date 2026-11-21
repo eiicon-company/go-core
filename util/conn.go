@@ -270,7 +270,7 @@ func RedisConn(env Environment) (*radix.Pool, error) {
 func SelectRedisConn(uri string) (*radix.Pool, error) {
 	dr, err := dsn.Redis(uri)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse redis dsn <%s>: %s", redactRedisURI(uri), err)
+		return nil, fmt.Errorf("failed to parse redis dsn <%s>: %s", redactRedisURI(uri), withoutURL(err))
 	}
 
 	selectDB, err := strconv.Atoi(dr.DB)
@@ -310,12 +310,22 @@ func redactRedisURI(uri string) string {
 	return u.Redacted()
 }
 
+// withoutURL drops the URL that a url.Parse error repeats in full, password
+// included, and keeps the reason.
+func withoutURL(err error) error {
+	var urlErr *url.Error
+	if errors.As(err, &urlErr) {
+		return urlErr.Err
+	}
+	return err
+}
+
 // DLMConn returns distributed lock manager pool
 func DLMConn(env Environment) (*dlm.DLM, error) {
 	uri := redactRedisURI(env.EnvString("DLMURI"))
 	dr, err := dsn.Redis(env.EnvString("DLMURI"))
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse DLM dsn <%s>: %s", uri, err)
+		return nil, fmt.Errorf("failed to parse DLM dsn <%s>: %s", uri, withoutURL(err))
 	}
 
 	pool := &dlmredis.Pool{

@@ -79,6 +79,24 @@ func TestRedisConnWithoutPasswordSendsNoAuth(t *testing.T) {
 	pool.Close()
 }
 
+// TestRedisConnParseErrorHidesPassword guards the error of a URI that does
+// not parse: url.Parse repeats the whole URI in its own error.
+func TestRedisConnParseErrorHidesPassword(t *testing.T) {
+	const uri = "redis://:s3cret@bad host:6379/8"
+
+	_, err := SelectRedisConn(uri)
+	_, dlmErr := DLMConn(dlmEnv(uri))
+
+	for _, e := range []error{err, dlmErr} {
+		if e == nil {
+			t.Fatal("Parsed a URI with a space in its host")
+		}
+		if strings.Contains(e.Error(), "s3cret") {
+			t.Errorf("Password left in the error: %s", e)
+		}
+	}
+}
+
 // TestRedactRedisURIHidesPassword guards the connection URIs written to logs
 // and errors.
 func TestRedactRedisURIHidesPassword(t *testing.T) {
