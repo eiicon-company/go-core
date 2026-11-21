@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -269,39 +270,52 @@ func RedisConn(env Environment) (*radix.Pool, error) {
 func SelectRedisConn(uri string) (*radix.Pool, error) {
 	dr, err := dsn.Redis(uri)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse redis dsn <%s>: %s", uri, err)
+		return nil, fmt.Errorf("failed to parse redis dsn <%s>: %s", redactRedisURI(uri), err)
 	}
 
 	selectDB, err := strconv.Atoi(dr.DB)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse redis db number <%s>: %s", uri, err)
+		return nil, fmt.Errorf("failed to parse redis db number <%s>: %s", redactRedisURI(uri), err)
 	}
 
-	// this is a ConnFunc which will set up a connection which is authenticated
-	// and has a 1 minute timeout on all operations
+	opts := []radix.DialOpt{
+		radix.DialTimeout(time.Second * 10),
+		radix.DialSelectDB(selectDB),
+	}
+	// AUTH only when the URI has a password: a server without one refuses AUTH.
+	if dr.Password != "" {
+		opts = append(opts, radix.DialAuthPass(dr.Password))
+	}
 	connFunc := func(network, addr string) (radix.Conn, error) {
-		return radix.Dial(network, addr,
-			radix.DialTimeout(time.Second*10),
-			radix.DialSelectDB(selectDB),
-		)
+		return radix.Dial(network, addr, opts...)
 	}
 
 	p, err := radix.NewPool("tcp", dr.HostPort, 10, radix.PoolConnFunc(connFunc))
 	if err != nil {
-		return nil, fmt.Errorf("uninitialized redis client <%s>: %s", uri, err)
+		return nil, fmt.Errorf("uninitialized redis client <%s>: %s", redactRedisURI(uri), err)
 	}
 
 	msg := "[INFO] the redis@v3 connection established <%s>, version UNKNOWN"
-	logger.Printf(msg, uri)
+	logger.Printf(msg, redactRedisURI(uri))
 
 	return p, err
 }
 
+// redactRedisURI returns uri with its password masked, for logs and errors.
+func redactRedisURI(uri string) string {
+	u, err := url.Parse(uri)
+	if err != nil {
+		return "<unparsable redis uri>"
+	}
+	return u.Redacted()
+}
+
 // DLMConn returns distributed lock manager pool
 func DLMConn(env Environment) (*dlm.DLM, error) {
+	uri := redactRedisURI(env.EnvString("DLMURI"))
 	dr, err := dsn.Redis(env.EnvString("DLMURI"))
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse DLM dsn <%s>: %s", env.EnvString("DLMURI"), err)
+		return nil, fmt.Errorf("failed to parse DLM dsn <%s>: %s", uri, err)
 	}
 
 	pool := &dlmredis.Pool{
@@ -311,6 +325,13 @@ func DLMConn(env Environment) (*dlm.DLM, error) {
 			c, err := dlmredis.Dial("tcp", dr.HostPort)
 			if err != nil {
 				return nil, err
+			}
+			// AUTH only when the URI has a password: a server without one refuses AUTH.
+			if dr.Password != "" {
+				if _, err := c.Do("AUTH", dr.Password); err != nil {
+					c.Close()
+					return nil, err
+				}
 			}
 			if _, err := c.Do("SELECT", dr.DB); err != nil {
 				c.Close()
@@ -331,11 +352,11 @@ func DLMConn(env Environment) (*dlm.DLM, error) {
 	defer conn.Close()
 
 	if _, err := dlmredis.String(conn.Do("PING")); err != nil {
-		return nil, fmt.Errorf("uninitialized DLM client <%s>: %s", env.EnvString("DLMURI"), err)
+		return nil, fmt.Errorf("uninitialized DLM client <%s>: %s", uri, err)
 	}
 
 	msg := "[INFO] the DLM(distributed lock) connection established <%s>, version UNKNOWN"
-	logger.Printf(msg, env.EnvString("DLMURI"))
+	logger.Printf(msg, uri)
 
 	return &dlm.DLM{Pool: pool}, nil
 }
