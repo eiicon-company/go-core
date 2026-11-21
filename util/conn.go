@@ -310,12 +310,12 @@ func redactRedisURI(uri string) string {
 	return u.Redacted()
 }
 
-// withoutURL drops the URL that a url.Parse error repeats in full, password
-// included, and keeps the reason.
+// withoutURL replaces a url.Parse error, which quotes the URI (the whole of it,
+// or the bytes around a bad escape, either way maybe the password).
 func withoutURL(err error) error {
 	var urlErr *url.Error
 	if errors.As(err, &urlErr) {
-		return urlErr.Err
+		return errors.New("malformed URI")
 	}
 	return err
 }
