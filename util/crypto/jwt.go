@@ -74,6 +74,30 @@ func JwtToken(data interface{}, option JwtTokenOption) (string, error) {
 
 // JwtParse returns parsed token as map
 func JwtParse(encrypted string) (interface{}, error) {
+	claims, err := jwtParseClaims(encrypted)
+	if err != nil {
+		return nil, err
+	}
+
+	return claims["data"], nil
+}
+
+// JwtParseWithExpiry returns the parsed token data with its exp, so a reissued token can keep the same lifetime
+func JwtParseWithExpiry(encrypted string) (interface{}, time.Time, error) {
+	claims, err := jwtParseClaims(encrypted)
+	if err != nil {
+		return nil, time.Time{}, err
+	}
+
+	exp, err := claims.GetExpirationTime()
+	if err != nil || exp == nil {
+		return nil, time.Time{}, xerrors.New("token has no exp")
+	}
+
+	return claims["data"], exp.Time, nil
+}
+
+func jwtParseClaims(encrypted string) (jwt.MapClaims, error) {
 	if jwtSecret == jwtSecretDefault {
 		return nil, xerrors.New("must be changed default secret")
 	}
@@ -93,5 +117,5 @@ func JwtParse(encrypted string) (interface{}, error) {
 		return nil, xerrors.New("invalid token")
 	}
 
-	return claims["data"], nil
+	return claims, nil
 }
