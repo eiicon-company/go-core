@@ -26,6 +26,8 @@ var (
 // JwtTokenOption used as a generate token option
 type JwtTokenOption struct {
 	Expires time.Duration
+	// ExpiresAt, when set, is used as exp instead of Expires, so a reissued token keeps an exact deadline
+	ExpiresAt time.Time
 }
 
 // SetExpires set value
@@ -59,14 +61,18 @@ func JwtToken(data interface{}, option JwtTokenOption) (string, error) {
 		return "", xerrors.New("must be changed default secret")
 	}
 
-	expires := jwtExpires
+	now := time.Now()
+	expiresAt := now.Add(jwtExpires)
 	if option.Expires != 0 {
-		expires = option.Expires
+		expiresAt = now.Add(option.Expires)
+	}
+	if !option.ExpiresAt.IsZero() {
+		expiresAt = option.ExpiresAt
 	}
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"data": data,
-		"exp":  jwt.NewNumericDate(time.Now().Add(expires)),
-		"iat":  jwt.NewNumericDate(time.Now()),
+		"exp":  jwt.NewNumericDate(expiresAt),
+		"iat":  jwt.NewNumericDate(now),
 	})
 	// Sign and get the complete encoded token as a string using the secret
 	return jwtToken.SignedString([]byte(jwtSecret))

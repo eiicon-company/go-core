@@ -42,3 +42,22 @@ func TestJwtParseWithExpiry(t *testing.T) {
 		t.Errorf("JwtParse must keep accepting a token without exp: %v", err)
 	}
 }
+
+func TestJwtTokenWithExpiresAt(t *testing.T) {
+	SetSecret("0123456789abcdef")
+	t.Cleanup(func() { SetSecret(jwtSecretDefault) })
+
+	deadline := time.Now().Add(7 * time.Minute).Truncate(time.Second)
+	token, err := JwtToken(map[string]any{"pk": 1}, JwtTokenOption{Expires: time.Hour, ExpiresAt: deadline})
+	if err != nil {
+		t.Fatalf("JwtToken: %v", err)
+	}
+
+	_, expiresAt, err := JwtParseWithExpiry(token)
+	if err != nil {
+		t.Fatalf("JwtParseWithExpiry: %v", err)
+	}
+	if !expiresAt.Equal(deadline) {
+		t.Errorf("exp = %s, want the given deadline %s", expiresAt, deadline)
+	}
+}
