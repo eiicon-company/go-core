@@ -116,7 +116,7 @@ func JwtParseWithExpiry(encrypted string) (interface{}, time.Time, error) {
 }
 
 // JwtParseWithTimes returns the parsed HS256 token data with its iat and exp, refusing a token that lacks either.
-// Both are whole seconds, as JwtToken signs them.
+// JwtToken signs both in whole seconds; a fractional value from elsewhere is not checked.
 func JwtParseWithTimes(encrypted string) (interface{}, time.Time, time.Time, error) {
 	claims, err := jwtParseClaims(encrypted, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 	if err != nil {
